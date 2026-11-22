@@ -22,6 +22,11 @@ class HomeScreenController extends GetxController {
   final quickPicks = QuickPicks([]).obs;
   final middleContent = [].obs;
   final fixedContent = [].obs;
+  final dynamicEndlessContent = [].obs;
+  final isLoadingMore = false.obs;
+  final hasMoreEndless = true.obs;
+  final ScrollController homeFeedScrollController = ScrollController();
+  int _endlessBatchIndex = 0;
   final showVersionDialog = true.obs;
   //isHomeScreenOnTop var only useful if bottom nav enabled
   final isHomeSreenOnTop = true.obs;
@@ -31,8 +36,86 @@ class HomeScreenController extends GetxController {
   @override
   onInit() {
     super.onInit();
+    homeFeedScrollController.addListener(_onHomeFeedScroll);
     loadContent();
     if (updateCheckFlag) _checkNewVersion();
+  }
+
+  void _onHomeFeedScroll() {
+    if (!homeFeedScrollController.hasClients) return;
+    if (homeFeedScrollController.position.pixels >=
+            homeFeedScrollController.position.maxScrollExtent - 400 &&
+        !isLoadingMore.value &&
+        hasMoreEndless.value) {
+      loadNextEndlessBatch();
+    }
+  }
+
+  Future<void> loadNextEndlessBatch() async {
+    if (isLoadingMore.value || !hasMoreEndless.value) return;
+    isLoadingMore.value = true;
+    try {
+      _endlessBatchIndex++;
+      List newSections = [];
+      final box = Hive.box("AppPrefs");
+      final recentSongId = box.get("recentSongId");
+
+      if (_endlessBatchIndex == 1 && recentSongId != null) {
+        try {
+          final rel = await _musicServices.getContentRelatedToSong(
+              recentSongId.toString(), getContentHlCode());
+          if (rel is List && rel.isNotEmpty) {
+            for (var item in rel) {
+              if (item is Map && item.containsKey("contents")) {
+                final parsed = item["type"] == "Album Content"
+                    ? AlbumContent.fromJson(item)
+                    : PlaylistContent.fromJson(item);
+                if (!dynamicEndlessContent.any((existing) => existing.title == parsed.title)) {
+                  newSections.add(parsed);
+                }
+              }
+            }
+          }
+        } catch (e) {
+          debugPrint("Error fetching related endless batch: $e");
+        }
+      }
+
+      if (newSections.isEmpty) {
+        final categories = ["TR", "TMV"];
+        final cat = categories[_endlessBatchIndex % categories.length];
+        try {
+          final charts = await _musicServices.getCharts(cat);
+          if (charts.isNotEmpty) {
+            for (var item in charts) {
+              if (item is Map && item.containsKey("contents")) {
+                final parsed = item["type"] == "Album Content"
+                    ? AlbumContent.fromJson(item)
+                    : PlaylistContent.fromJson(item);
+                if (!dynamicEndlessContent.any((existing) => existing.title == parsed.title) &&
+                    !middleContent.any((existing) => existing.title == parsed.title)) {
+                  newSections.add(parsed);
+                }
+              }
+            }
+          }
+        } catch (e) {
+          debugPrint("Error fetching charts endless batch: $e");
+        }
+      }
+
+      if (newSections.isNotEmpty) {
+        dynamicEndlessContent.addAll(newSections);
+      } else {
+        if (_endlessBatchIndex > 5) {
+          hasMoreEndless.value = false;
+        }
+      }
+    } catch (e) {
+      debugPrint("loadNextEndlessBatch error: $e");
+    } finally {
+      isLoadingMore.value = false;
+    }
   }
 
   Future<void> loadContent() async {
@@ -372,6 +455,7 @@ class HomeScreenController extends GetxController {
 
   @override
   void dispose() {
+    homeFeedScrollController.dispose();
     disposeDetachedScrollControllers(disposeAll: true);
     super.dispose();
   }

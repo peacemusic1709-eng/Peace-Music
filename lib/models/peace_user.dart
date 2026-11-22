@@ -4,6 +4,7 @@ class PeaceUser {
   final String username;
   final String email;
   final String password;
+  final String? gender;
   final bool isGuest;
   final String? photoUrl;
   final DateTime createdAt;
@@ -16,6 +17,7 @@ class PeaceUser {
     this.username = '',
     required this.email,
     this.password = '',
+    this.gender,
     required this.isGuest,
     this.photoUrl,
     required this.createdAt,
@@ -30,6 +32,7 @@ class PeaceUser {
       'username': username,
       'email': email,
       'password': password,
+      'gender': gender,
       'isGuest': isGuest,
       'photoUrl': photoUrl,
       'createdAt': createdAt.toIso8601String(),
@@ -45,6 +48,7 @@ class PeaceUser {
       username: json['username'] ?? '',
       email: json['email'] ?? '',
       password: json['password'] ?? '',
+      gender: json['gender'],
       isGuest: json['isGuest'] ?? false,
       photoUrl: json['photoUrl'],
       createdAt: json['createdAt'] != null
@@ -66,6 +70,7 @@ class PeaceUser {
     String? username,
     String? email,
     String? password,
+    String? gender,
     bool? isGuest,
     String? photoUrl,
     DateTime? createdAt,
@@ -78,6 +83,7 @@ class PeaceUser {
       username: username ?? this.username,
       email: email ?? this.email,
       password: password ?? this.password,
+      gender: gender ?? this.gender,
       isGuest: isGuest ?? this.isGuest,
       photoUrl: photoUrl ?? this.photoUrl,
       createdAt: createdAt ?? this.createdAt,

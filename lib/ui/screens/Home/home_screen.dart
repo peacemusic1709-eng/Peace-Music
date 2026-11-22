@@ -214,10 +214,28 @@ class Body extends StatelessWidget {
                                     homeScreenController),
                                 ...getWidgetList(
                                     homeScreenController.fixedContent,
-                                    homeScreenController)
+                                    homeScreenController),
+                                ...getWidgetList(
+                                    homeScreenController.dynamicEndlessContent,
+                                    homeScreenController),
+                                if (homeScreenController.isLoadingMore.value)
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 24),
+                                    child: Center(
+                                      child: SizedBox(
+                                        width: 26,
+                                        height: 26,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2.2,
+                                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7C4DFF)),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                               ]
                             : [const HomeShimmer()];
                         return ListView.builder(
+                          controller: homeScreenController.homeFeedScrollController,
                           padding:
                               EdgeInsets.only(bottom: 200, top: topPadding),
                           itemCount: items.length,

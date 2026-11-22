@@ -151,13 +151,40 @@ class StandardPlayer extends StatelessWidget {
                     /// Extra space container
                     Expanded(child: Container()),
 
-                    /// Contains the player controls
+                    /// Contains the player controls in a luxury Frosted Glassmorphic Panel
                     Padding(
                       padding: EdgeInsets.only(
+                          left: 16,
+                          right: 16,
                           bottom: 80 + Get.mediaQuery.padding.bottom),
                       child: Container(
-                          constraints: const BoxConstraints(maxWidth: 500),
-                          child: const PlayerControlWidget()),
+                        constraints: const BoxConstraints(maxWidth: 500),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(28),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 25.0, sigmaY: 25.0),
+                            child: Container(
+                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF141522).withOpacity(0.55),
+                                borderRadius: BorderRadius.circular(28),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.12),
+                                  width: 1.2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.35),
+                                    blurRadius: 24,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
+                              ),
+                              child: const PlayerControlWidget(),
+                            ),
+                          ),
+                        ),
+                      ),
                     )
                   ],
                 ),

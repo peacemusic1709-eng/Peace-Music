@@ -176,11 +176,14 @@ class PeaceAuthService extends GetxService {
     return false;
   }
 
+  bool get hasSavedGuestProfile => _authBox.containsKey("savedGuestProfile");
+
   Future<bool> registerUser({
     required String name,
     required String email,
     required String username,
     required String password,
+    String? gender,
   }) async {
     final cleanEmail = email.trim().toLowerCase();
     final cleanName = name.trim().isEmpty ? "User" : name.trim();
@@ -195,6 +198,7 @@ class PeaceAuthService extends GetxService {
           "email": cleanEmail,
           "username": cleanUsername,
           "password": password,
+          "gender": gender ?? "",
         },
         options: Options(
           sendTimeout: const Duration(seconds: 6),
@@ -248,6 +252,7 @@ class PeaceAuthService extends GetxService {
         username: cleanUsername,
         email: cleanEmail,
         password: password,
+        gender: gender,
         isGuest: false,
         createdAt: DateTime.now(),
         lastSyncedAt: DateTime.now(),
@@ -502,7 +507,7 @@ class PeaceAuthService extends GetxService {
     }
   }
 
-  Future<void> loginAsGuest([String fullName = "Guest User"]) async {
+  Future<void> loginAsGuest([String fullName = "Guest User", String? gender]) async {
     // Check if an existing persistent guest profile already exists on this phone
     if (_authBox.containsKey("savedGuestProfile")) {
       try {
@@ -535,6 +540,7 @@ class PeaceAuthService extends GetxService {
       name: cleanName,
       username: guestUsername,
       email: "",
+      gender: gender,
       isGuest: true,
       createdAt: DateTime.now(),
       lastSyncedAt: DateTime.now(),

@@ -9,6 +9,9 @@ enum OnboardingView {
   signUpEmail,
   signUpPassword,
   signUpName,
+  signUpGender,
+  guestName,
+  guestGender,
   loginEmail,
   otpVerify,
 }
@@ -116,10 +119,13 @@ class _PeaceOnboardingBottomSheetState
   final _signUpEmailController = TextEditingController();
   final _signUpPasswordController = TextEditingController();
   final _signUpNameController = TextEditingController();
+  final _guestNameController = TextEditingController();
   final _loginEmailController = TextEditingController();
   final _loginPasswordController = TextEditingController();
   final _otpController = TextEditingController();
 
+  String _selectedGender = "Male";
+  String _guestGender = "Male";
   bool _obscurePassword = true;
   bool _obscureLoginPassword = true;
   bool _isLoading = false;
@@ -162,6 +168,7 @@ class _PeaceOnboardingBottomSheetState
     _signUpEmailController.dispose();
     _signUpPasswordController.dispose();
     _signUpNameController.dispose();
+    _guestNameController.dispose();
     _loginEmailController.dispose();
     _loginPasswordController.dispose();
     _otpController.dispose();
@@ -249,15 +256,24 @@ class _PeaceOnboardingBottomSheetState
         if (_currentView == OnboardingView.welcome) {
           // Mandatory choice on first open
           return false;
-        } else if (_currentView == OnboardingView.signUpPassword) {
-          _goTo(OnboardingView.signUpEmail);
+        } else if (_currentView == OnboardingView.guestName) {
+          _goTo(OnboardingView.welcome);
+          return false;
+        } else if (_currentView == OnboardingView.guestGender) {
+          _goTo(OnboardingView.guestName);
+          return false;
+        } else if (_currentView == OnboardingView.signUpGender) {
+          _goTo(OnboardingView.signUpName);
           return false;
         } else if (_currentView == OnboardingView.signUpName) {
           _goTo(OnboardingView.signUpPassword);
           return false;
+        } else if (_currentView == OnboardingView.signUpPassword) {
+          _goTo(OnboardingView.signUpEmail);
+          return false;
         } else if (_currentView == OnboardingView.otpVerify) {
           _goTo(_isSignUpVerification
-              ? OnboardingView.signUpName
+              ? OnboardingView.signUpGender
               : OnboardingView.loginEmail);
           return false;
         } else {
@@ -340,6 +356,12 @@ class _PeaceOnboardingBottomSheetState
         return _buildSignUpPasswordView(context);
       case OnboardingView.signUpName:
         return _buildSignUpNameView(context);
+      case OnboardingView.signUpGender:
+        return _buildSignUpGenderView(context);
+      case OnboardingView.guestName:
+        return _buildGuestNameView(context);
+      case OnboardingView.guestGender:
+        return _buildGuestGenderView(context);
       case OnboardingView.loginEmail:
         return _buildLoginEmailView(context);
       case OnboardingView.otpVerify:
@@ -459,8 +481,12 @@ class _PeaceOnboardingBottomSheetState
         TextButton(
           onPressed: () async {
             final auth = Get.find<PeaceAuthService>();
-            await auth.loginAsGuest("Guest User");
-            if (context.mounted) Navigator.pop(context);
+            if (auth.hasSavedGuestProfile) {
+              await auth.loginAsGuest();
+              if (context.mounted) Navigator.pop(context);
+            } else {
+              _goTo(OnboardingView.guestName);
+            }
           },
           child: const Text(
             "Continue as Guest",
@@ -959,6 +985,128 @@ class _PeaceOnboardingBottomSheetState
                 borderRadius: BorderRadius.circular(26),
               ),
             ),
+            onPressed: () {
+              final name = _signUpNameController.text.trim();
+              if (name.isEmpty) {
+                auth.showCustomSnackBar(
+                  "Kripya apna naam enter karein.",
+                  title: "Name Required",
+                );
+                return;
+              }
+              _goTo(OnboardingView.signUpGender);
+            },
+            child: const Text(
+              "Continue",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 4b. SIGN UP: STEP 4 (GENDER SELECTION)
+  Widget _buildSignUpGenderView(BuildContext context) {
+    final auth = Get.find<PeaceAuthService>();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            InkWell(
+              onTap: () => _goTo(OnboardingView.signUpName),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              "Create account",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 36),
+
+        const Text(
+          "What's your gender?",
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+            letterSpacing: -0.4,
+          ),
+        ),
+        const SizedBox(height: 10),
+        const Text(
+          "This helps us recommend songs that match your taste.",
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.white60,
+          ),
+        ),
+        const SizedBox(height: 28),
+
+        _buildGenderOption(
+          label: "Male",
+          emoji: "👨",
+          value: "Male",
+          selectedValue: _selectedGender,
+          onTap: () => setState(() => _selectedGender = "Male"),
+        ),
+        const SizedBox(height: 12),
+        _buildGenderOption(
+          label: "Female",
+          emoji: "👩",
+          value: "Female",
+          selectedValue: _selectedGender,
+          onTap: () => setState(() => _selectedGender = "Female"),
+        ),
+        const SizedBox(height: 12),
+        _buildGenderOption(
+          label: "Other / Prefer not to say",
+          emoji: "🌈",
+          value: "Other",
+          selectedValue: _selectedGender,
+          onTap: () => setState(() => _selectedGender = "Other"),
+        ),
+        const SizedBox(height: 28),
+
+        const Text(
+          "By tapping Create account, you agree to Peace Music's Terms of Service and Privacy Policy.",
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.white60,
+            height: 1.45,
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF7C4DFF),
+              foregroundColor: Colors.white,
+              elevation: 4,
+              shadowColor: const Color(0xFF7C4DFF).withOpacity(0.35),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(26),
+              ),
+            ),
             onPressed: _isLoading
                 ? null
                 : () async {
@@ -975,6 +1123,7 @@ class _PeaceOnboardingBottomSheetState
                       email: email,
                       username: username,
                       password: password,
+                      gender: _selectedGender,
                     );
                     setState(() => _isLoading = false);
 
@@ -997,6 +1146,285 @@ class _PeaceOnboardingBottomSheetState
           ),
         ),
       ],
+    );
+  }
+
+  // 4c. GUEST PROFILE: NAME
+  Widget _buildGuestNameView(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            InkWell(
+              onTap: () => _goTo(OnboardingView.welcome),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              "Guest Mode",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 36),
+
+        const Text(
+          "What's your full name?",
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+            letterSpacing: -0.4,
+          ),
+        ),
+        const SizedBox(height: 10),
+        const Text(
+          "This will appear on your Peace guest profile.",
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.white60,
+          ),
+        ),
+        const SizedBox(height: 28),
+
+        const Text(
+          "Full Name",
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.white70,
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        TextField(
+          controller: _guestNameController,
+          autofocus: true,
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+          cursorColor: const Color(0xFF7C4DFF),
+          decoration: InputDecoration(
+            hintText: "Enter your name",
+            hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
+            filled: true,
+            fillColor: const Color(0xFF13141F),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF242638)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF242638)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.8),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF7C4DFF),
+              foregroundColor: Colors.white,
+              elevation: 4,
+              shadowColor: const Color(0xFF7C4DFF).withOpacity(0.35),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(26),
+              ),
+            ),
+            onPressed: () {
+              final name = _guestNameController.text.trim();
+              if (name.isEmpty) {
+                final auth = Get.find<PeaceAuthService>();
+                auth.showCustomSnackBar(
+                  "Kripya apna naam enter karein.",
+                  title: "Name Required",
+                );
+                return;
+              }
+              _goTo(OnboardingView.guestGender);
+            },
+            child: const Text(
+              "Continue",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 4d. GUEST PROFILE: GENDER
+  Widget _buildGuestGenderView(BuildContext context) {
+    final auth = Get.find<PeaceAuthService>();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            InkWell(
+              onTap: () => _goTo(OnboardingView.guestName),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              "Guest Mode",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 36),
+
+        const Text(
+          "What's your gender?",
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+            letterSpacing: -0.4,
+          ),
+        ),
+        const SizedBox(height: 10),
+        const Text(
+          "This helps us recommend songs suited to your taste.",
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.white60,
+          ),
+        ),
+        const SizedBox(height: 28),
+
+        _buildGenderOption(
+          label: "Male",
+          emoji: "👨",
+          value: "Male",
+          selectedValue: _guestGender,
+          onTap: () => setState(() => _guestGender = "Male"),
+        ),
+        const SizedBox(height: 12),
+        _buildGenderOption(
+          label: "Female",
+          emoji: "👩",
+          value: "Female",
+          selectedValue: _guestGender,
+          onTap: () => setState(() => _guestGender = "Female"),
+        ),
+        const SizedBox(height: 12),
+        _buildGenderOption(
+          label: "Other / Prefer not to say",
+          emoji: "🌈",
+          value: "Other",
+          selectedValue: _guestGender,
+          onTap: () => setState(() => _guestGender = "Other"),
+        ),
+        const SizedBox(height: 28),
+
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF7C4DFF),
+              foregroundColor: Colors.white,
+              elevation: 4,
+              shadowColor: const Color(0xFF7C4DFF).withOpacity(0.35),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(26),
+              ),
+            ),
+            onPressed: () async {
+              final name = _guestNameController.text.trim().isEmpty
+                  ? "Guest User"
+                  : _guestNameController.text.trim();
+              await auth.loginAsGuest(name, _guestGender);
+              if (context.mounted) Navigator.pop(context);
+            },
+            child: const Text(
+              "Start Listening 🎵",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGenderOption({
+    required String label,
+    required String emoji,
+    required String value,
+    required String selectedValue,
+    required VoidCallback onTap,
+  }) {
+    final isSelected = selectedValue == value;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFF7C4DFF).withOpacity(0.20)
+              : const Color(0xFF13141F),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF7C4DFF) : const Color(0xFF242638),
+            width: isSelected ? 1.8 : 1.0,
+          ),
+        ),
+        child: Row(
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 24)),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.white70,
+                  fontSize: 16,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                ),
+              ),
+            ),
+            if (isSelected)
+              const Icon(Icons.check_circle_rounded,
+                  color: Color(0xFF7C4DFF), size: 22),
+          ],
+        ),
+      ),
     );
   }
 
