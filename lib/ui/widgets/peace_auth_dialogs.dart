@@ -846,7 +846,48 @@ class _PeaceOtpVerificationDialogState extends State<PeaceOtpVerificationDialog>
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 13, color: Colors.white60, height: 1.4),
             ),
-            const SizedBox(height: 22),
+            const SizedBox(height: 16),
+
+            // Instant OTP Auto-Fill Card
+            Builder(builder: (ctx) {
+              final activeOtp = Get.find<PeaceAuthService>().getOtpForEmail(widget.email) ?? "";
+              if (activeOtp.isEmpty) return const SizedBox.shrink();
+              return Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE040FB).withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFE040FB).withOpacity(0.4)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Your OTP Code:", style: TextStyle(fontSize: 11, color: Colors.white60)),
+                        Text(activeOtp, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFE040FB), letterSpacing: 2)),
+                      ],
+                    ),
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.white12,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      icon: const Icon(Icons.flash_on_rounded, size: 16, color: Colors.amberAccent),
+                      label: const Text("Auto-Fill", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      onPressed: () {
+                        setState(() {
+                          _otpController.text = activeOtp;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              );
+            }),
 
             // OTP Input
             TextField(
@@ -1064,6 +1105,47 @@ class _PeaceForgotPasswordDialogState extends State<PeaceForgotPasswordDialog> {
                   ),
                 ),
               ] else ...[
+                // Instant Reset OTP Auto-Fill Card
+                Builder(builder: (ctx) {
+                  final activeOtp = Get.find<PeaceAuthService>().getOtpForEmail(_emailController.text) ?? "";
+                  if (activeOtp.isEmpty) return const SizedBox.shrink();
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 14),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE040FB).withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFE040FB).withOpacity(0.4)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text("Reset OTP Code:", style: TextStyle(fontSize: 11, color: Colors.white60)),
+                            Text(activeOtp, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFE040FB), letterSpacing: 2)),
+                          ],
+                        ),
+                        TextButton.icon(
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.white12,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          icon: const Icon(Icons.flash_on_rounded, size: 16, color: Colors.amberAccent),
+                          label: const Text("Auto-Fill", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          onPressed: () {
+                            setState(() {
+                              _otpController.text = activeOtp;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+
                 // OTP Input
                 TextField(
                   controller: _otpController,

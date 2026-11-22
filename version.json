@@ -1,7 +1,7 @@
 {
-  "versionCode": 7,
-  "versionName": "1.0.6",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.0.6/PeaceMusic.apk",
-  "changelog": "First-Launch Onboarding Sheet with Blurred Backdrop, Verified Gmail Sign Up with OTP, Live Unique Username (@username), Secure Password & Forgot Password OTP Reset, and Guest Profile!",
+  "versionCode": 8,
+  "versionName": "1.0.7",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.0.7/PeaceMusic.apk",
+  "changelog": "Instant OTP Auto-Fill, Direct Webhook / Google Script Mail Delivery, and Fast Google Sign In without delay!",
   "updatedAt": "2026-11-22"
 }

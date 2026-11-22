@@ -51,6 +51,8 @@ class PeaceAuthService extends GetxService {
     return "@${base}_$randomNum";
   }
 
+  String? getOtpForEmail(String email) => _activeOtps[email.trim().toLowerCase()];
+
   bool isValidEmail(String email) {
     final clean = email.trim().toLowerCase();
     return RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").hasMatch(clean);
@@ -61,21 +63,33 @@ class PeaceAuthService extends GetxService {
     final otp = (100000 + Random().nextInt(900000)).toString();
     _activeOtps[cleanEmail] = otp;
 
-    try {
-      Dio().post(
-        "https://formsubmit.co/ajax/$cleanEmail",
-        data: {
-          "subject": "Peace Music $purpose Code: $otp",
-          "message": "Aapka Peace Music OTP code hai: $otp. Yeh 10 minute tak valid hai.",
-        },
-        options: Options(sendTimeout: const Duration(seconds: 4), receiveTimeout: const Duration(seconds: 4)),
-      ).catchError((_) {});
-    } catch (_) {}
+    // Check if custom Google Apps Script Web App or Mail Webhook is configured
+    final webhookUrl = _authBox.get("mailWebhookUrl", defaultValue: "");
+    if (webhookUrl != null && webhookUrl.toString().trim().isNotEmpty) {
+      try {
+        await Dio().post(
+          webhookUrl.toString().trim(),
+          data: {
+            "to": cleanEmail,
+            "subject": "Peace Music $purpose Code: $otp",
+            "body": "Hello,\n\nAapka Peace Music OTP code hai: $otp\nYeh code 10 minute tak valid hai.\n\nEnjoy Peace Music!\n- Made by Harsh",
+            "otp": otp,
+          },
+          options: Options(
+            sendTimeout: const Duration(seconds: 6),
+            receiveTimeout: const Duration(seconds: 6),
+            headers: {"Content-Type": "application/json"},
+          ),
+        );
+      } catch (e) {
+        debugPrint("Webhook dispatch error: $e");
+      }
+    }
 
     showCustomSnackBar(
       "OTP Code: $otp (Sent to $cleanEmail)",
       title: "Gmail $purpose OTP",
-      duration: const Duration(seconds: 8),
+      duration: const Duration(seconds: 10),
     );
 
     return otp;
