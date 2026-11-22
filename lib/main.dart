@@ -8,6 +8,7 @@ import 'package:terminate_restart/terminate_restart.dart';
 
 import '/ui/screens/Search/search_screen_controller.dart';
 import '/utils/get_localization.dart';
+import '/services/peace_auth_service.dart';
 import '/services/downloader.dart';
 import '/services/piped_service.dart';
 import 'utils/app_link_controller.dart';
@@ -93,6 +94,7 @@ Future<void> startApplicationServices() async {
   Get.lazyPut(() => LibraryAlbumsController(), fenix: true);
   Get.lazyPut(() => LibraryArtistsController(), fenix: true);
   Get.lazyPut(() => SettingsScreenController(), fenix: true);
+  Get.lazyPut(() => PeaceAuthService(), fenix: true);
   Get.lazyPut(() => Downloader(), fenix: true);
   if (GetPlatform.isDesktop) {
     Get.lazyPut(() => SearchScreenController(), fenix: true);
@@ -114,6 +116,7 @@ initHive() async {
   await Hive.openBox("SongDownloads");
   await Hive.openBox('SongsUrlCache');
   await Hive.openBox("AppPrefs");
+  await Hive.openBox("PeaceAuth");
 }
 
 void _setAppInitPrefs() {

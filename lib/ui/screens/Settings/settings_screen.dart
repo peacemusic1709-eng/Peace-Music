@@ -4,6 +4,7 @@ import 'package:harmonymusic/utils/helper.dart';
 import 'package:harmonymusic/utils/lang_mapping.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../widgets/peace_profile_card.dart';
 import '../../widgets/common_dialog_widget.dart';
 import '../../widgets/cust_switch.dart';
 import '../../widgets/export_file_dialog.dart';
@@ -46,6 +47,7 @@ class SettingsScreen extends StatelessWidget {
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.only(bottom: 200, top: 20),
             children: [
+              const PeaceProfileCard(),
               Obx(
                 () => settingsController.isNewVersionAvailable.value
                     ? Padding(

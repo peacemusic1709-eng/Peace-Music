@@ -1,7 +1,7 @@
 {
-  "versionCode": 5,
-  "versionName": "1.0.4",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.0.4/PeaceMusic.apk",
-  "changelog": "New Soundwave Logo, Native Splash Fix, Translucent Navigation Bar, Modern Icons, Headers everywhere!",
+  "versionCode": 6,
+  "versionName": "1.0.5",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.0.5/PeaceMusic.apk",
+  "changelog": "Google Sign-In, Guest Profile, Multi-device Cloud Sync & Smart Offline Download Restore!",
   "updatedAt": "2026-11-22"
 }
