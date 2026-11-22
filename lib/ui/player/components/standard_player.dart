@@ -151,32 +151,32 @@ class StandardPlayer extends StatelessWidget {
                     /// Extra space container
                     Expanded(child: Container()),
 
-                    /// Contains the player controls in a luxury Frosted Glassmorphic Panel
+                    /// Contains the player controls in a Colorless Frosted Glass Panel
                     Padding(
                       padding: EdgeInsets.only(
                           left: 16,
                           right: 16,
-                          bottom: 80 + Get.mediaQuery.padding.bottom),
+                          bottom: 65 + Get.mediaQuery.padding.bottom),
                       child: Container(
                         constraints: const BoxConstraints(maxWidth: 500),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(28),
+                          borderRadius: BorderRadius.circular(16), // Thoda kam round, modern rectangle
                           child: BackdropFilter(
                             filter: ImageFilter.blur(sigmaX: 25.0, sigmaY: 25.0),
                             child: Container(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8), // Vertically compact
                               decoration: BoxDecoration(
-                                color: const Color(0xFF141522).withOpacity(0.55),
-                                borderRadius: BorderRadius.circular(28),
+                                color: Colors.white.withOpacity(0.08), // Pure colorless glass, NO black!
+                                borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.12),
-                                  width: 1.2,
+                                  color: Colors.white.withOpacity(0.18),
+                                  width: 1.0,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.35),
-                                    blurRadius: 24,
-                                    offset: const Offset(0, 8),
+                                    color: Colors.black.withOpacity(0.15),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 4),
                                   ),
                                 ],
                               ),

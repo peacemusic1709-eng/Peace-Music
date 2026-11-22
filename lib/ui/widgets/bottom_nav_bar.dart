@@ -15,26 +15,26 @@ class BottomNavBar extends StatelessWidget {
       padding: EdgeInsets.only(
         left: 20,
         right: 20,
-        bottom: bottomInset > 0 ? bottomInset : 14,
+        bottom: bottomInset > 0 ? bottomInset : 10,
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(33),
+        borderRadius: BorderRadius.circular(16), // Thoda kam round, sleek modern rectangle
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+          filter: ImageFilter.blur(sigmaX: 25.0, sigmaY: 25.0),
           child: Container(
-            height: 66,
+            height: 54, // Vertically chota (54 instead of 66)
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.50), // 50% transparent for see-through scroll
-              borderRadius: BorderRadius.circular(33),
+              color: Colors.white.withOpacity(0.08), // Colorless pure frosted glass, NO black!
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withOpacity(0.12),
+                color: Colors.white.withOpacity(0.18),
                 width: 1.0,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.35),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
@@ -48,34 +48,26 @@ class BottomNavBar extends StatelessWidget {
 
                   return Stack(
                     children: [
-                      // Smooth sliding active layer
+                      // Smooth sliding active layer - Pure Colorless Glass Sheen, NO purple!
                       AnimatedPositioned(
-                        duration: const Duration(milliseconds: 280),
+                        duration: const Duration(milliseconds: 260),
                         curve: Curves.easeOutCubic,
-                        left: selectedIndex * tabWidth + 6,
-                        top: 6,
-                        bottom: 6,
-                        width: tabWidth - 12,
+                        left: selectedIndex * tabWidth + 4,
+                        top: 4,
+                        bottom: 4,
+                        width: tabWidth - 8,
                         child: Container(
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                const Color(0xFF7C4DFF).withOpacity(0.42),
-                                const Color(0xFF6C5CE7).withOpacity(0.22),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(25),
+                            color: Colors.white.withOpacity(0.18), // Colorless glass highlight
+                            borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: const Color(0xFF7C4DFF).withOpacity(0.55),
-                              width: 1.2,
+                              color: Colors.white.withOpacity(0.28),
+                              width: 1.0,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF7C4DFF).withOpacity(0.28),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
+                                color: Colors.white.withOpacity(0.06),
+                                blurRadius: 8,
                               ),
                             ],
                           ),
@@ -148,7 +140,7 @@ class BottomNavBar extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(12),
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
           onTap: onTap,
@@ -158,21 +150,21 @@ class BottomNavBar extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 AnimatedScale(
-                  scale: isSelected ? 1.08 : 0.95,
-                  duration: const Duration(milliseconds: 200),
+                  scale: isSelected ? 1.05 : 0.95,
+                  duration: const Duration(milliseconds: 180),
                   child: Icon(
                     isSelected ? selectedIcon : unselectedIcon,
-                    size: 24,
+                    size: 21,
                     color: isSelected
                         ? Colors.white
                         : Colors.white.withOpacity(0.55),
                   ),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 2),
                 AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 200),
+                  duration: const Duration(milliseconds: 180),
                   style: TextStyle(
-                    fontSize: 10.5,
+                    fontSize: 9.5,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                     color: isSelected
                         ? Colors.white
