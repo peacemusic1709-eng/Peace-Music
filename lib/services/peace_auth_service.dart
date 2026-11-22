@@ -17,6 +17,20 @@ class PeaceAuthService extends GetxService {
 
   Box get _authBox => Hive.box("PeaceAuth");
 
+  void showCustomSnackBar(String message, {String? title, Duration? duration}) {
+    final ctx = Get.context;
+    if (ctx != null) {
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        snackbar(
+          ctx,
+          title != null && title.isNotEmpty ? "$title\n$message" : message,
+          size: SanckBarSize.BIG,
+          duration: duration ?? const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   @override
   void onInit() {
     super.onInit();
