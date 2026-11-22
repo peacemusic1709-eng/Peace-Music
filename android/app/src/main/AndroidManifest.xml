@@ -2,13 +2,15 @@
         xmlns:tools="http://schemas.android.com/tools">
 
     <queries>
+        <package android:name="com.google.android.packageinstaller" />
+        <package android:name="com.android.packageinstaller" />
         <intent>
             <action android:name="android.intent.action.VIEW" />
-            <data android:mimeType="application/vnd.android.package-archive" />
+            <data android:scheme="content" android:mimeType="application/vnd.android.package-archive" />
         </intent>
         <intent>
             <action android:name="android.intent.action.INSTALL_PACKAGE" />
-            <data android:mimeType="application/vnd.android.package-archive" />
+            <data android:scheme="content" android:mimeType="application/vnd.android.package-archive" />
         </intent>
     </queries>
 
@@ -102,10 +104,14 @@
         </receiver>
 
         <provider
-            android:name="com.peace.updater.PeaceFileProvider"
-            android:authorities="com.newnet.harmonymusic.peace_provider"
-            android:exported="true"
-            android:grantUriPermissions="true" />
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.newnet.harmonymusic.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
 
     </application>
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />

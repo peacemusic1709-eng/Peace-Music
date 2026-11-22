@@ -2,9 +2,13 @@ package com.peace.updater;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageInstaller;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -12,17 +16,22 @@ import android.os.Looper;
 import android.provider.Settings;
 import android.widget.Toast;
 
+import androidx.core.content.FileProvider;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 
 public class PeaceUpdater {
 
@@ -136,12 +145,10 @@ public class PeaceUpdater {
     }
 
     public static boolean isNewerVersion(int latestCode, String latestName, int curCode, String curName) {
-        // Priority 1: Check integer versionCode
         if (latestCode > 0 && curCode > 0) {
             return latestCode > curCode;
         }
 
-        // Priority 2: Semantic version comparison (e.g. 1.0.1 > 1.0.0)
         try {
             String cleanL = latestName.replaceAll("[^0-9.]", "").trim();
             String cleanC = curName.replaceAll("[^0-9.]", "").trim();
@@ -284,6 +291,10 @@ public class PeaceUpdater {
             public void run() {
                 try {
                     if (activity == null || activity.isFinishing()) return;
+                    if (file == null || !file.exists()) {
+                        Toast.makeText(activity, "Update file missing", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
 
                     // Android 8.0+ REQUEST_INSTALL_PACKAGES permission check
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -311,33 +322,90 @@ public class PeaceUpdater {
                         }
                     }
 
-                    Uri apkUri = PeaceFileProvider.getUriForFile(activity, file);
-
-                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-
-                    // Explicitly grant URI permission to all potential package installers
+                    // Strategy 1: Standard FileProvider + Intent.ACTION_VIEW
                     try {
-                        android.content.pm.PackageManager pm = activity.getPackageManager();
-                        java.util.List<android.content.pm.ResolveInfo> resolveInfos = pm.queryIntentActivities(intent, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY);
-                        if (resolveInfos != null) {
-                            for (android.content.pm.ResolveInfo resolveInfo : resolveInfos) {
+                        Uri apkUri = FileProvider.getUriForFile(
+                                activity,
+                                activity.getPackageName() + ".fileprovider",
+                                file
+                        );
+
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                        // Grant permission to potential package installers
+                        PackageManager pm = activity.getPackageManager();
+                        List<ResolveInfo> resolveInfos = pm.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+                        if (resolveInfos != null && !resolveInfos.isEmpty()) {
+                            for (ResolveInfo resolveInfo : resolveInfos) {
                                 String packageName = resolveInfo.activityInfo.packageName;
                                 activity.grantUriPermission(packageName, apkUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                             }
+                            activity.startActivity(intent);
+                            return;
                         }
-                    } catch (Exception ignored) {}
 
-                    activity.startActivity(intent);
+                        // Try known system installers explicitly
+                        String[] installers = new String[]{"com.google.android.packageinstaller", "com.android.packageinstaller"};
+                        for (String pkg : installers) {
+                            try {
+                                intent.setPackage(pkg);
+                                activity.grantUriPermission(pkg, apkUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                activity.startActivity(intent);
+                                return;
+                            } catch (Exception ignored) {
+                                intent.setPackage(null);
+                            }
+                        }
+
+                        // Direct launch attempt
+                        activity.startActivity(intent);
+                        return;
+
+                    } catch (Exception ex) {
+                        // Strategy 2: Modern PackageInstaller Session API
+                        installViaPackageInstaller(activity, file);
+                    }
 
                 } catch (Exception e) {
                     Toast.makeText(activity, "Install error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 }
             }
         });
+    }
+
+    public static void installViaPackageInstaller(Activity activity, File file) {
+        try {
+            PackageInstaller packageInstaller = activity.getPackageManager().getPackageInstaller();
+            PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(
+                    PackageInstaller.SessionParams.MODE_FULL_INSTALL
+            );
+            int sessionId = packageInstaller.createSession(params);
+            PackageInstaller.Session session = packageInstaller.openSession(sessionId);
+
+            InputStream in = new FileInputStream(file);
+            OutputStream out = session.openWrite("peace_install_session", 0, -1);
+            byte[] buffer = new byte[65536];
+            int count;
+            while ((count = in.read(buffer)) != -1) {
+                out.write(buffer, 0, count);
+            }
+            session.fsync(out);
+            in.close();
+            out.close();
+
+            Intent intent = new Intent(activity, activity.getClass());
+            int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+            if (Build.VERSION.SDK_INT >= 31) {
+                flags |= 0x02000000; // FLAG_MUTABLE
+            }
+            PendingIntent pendingIntent = PendingIntent.getActivity(activity, sessionId, intent, flags);
+            session.commit(pendingIntent.getIntentSender());
+            session.close();
+        } catch (Exception e) {
+            Toast.makeText(activity, "Install error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 }
