@@ -1,7 +1,7 @@
 {
-  "versionCode": 15,
-  "versionName": "1.1.4",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.1.4/PeaceMusic.apk",
-  "changelog": "Centralized VPS Cloud Auth & Library Sync (95.135.166.138:5055): Multi-device sync for Playlists, Favorites, and Downloads; Offline Guest Mode on phone; Ultra-low storage overhead.",
+  "versionCode": 16,
+  "versionName": "1.1.5",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.1.5/PeaceMusic.apk",
+  "changelog": "Standard Email+Password Login with database verification (zero accidental OTPs / auto-registrations), Forgot password with OTP, shifted down responsive label texts on create account",
   "updatedAt": "2026-11-22"
 }

@@ -116,9 +116,11 @@ class _PeaceOnboardingBottomSheetState
   final _signUpPasswordController = TextEditingController();
   final _signUpNameController = TextEditingController();
   final _loginEmailController = TextEditingController();
+  final _loginPasswordController = TextEditingController();
   final _otpController = TextEditingController();
 
   bool _obscurePassword = true;
+  bool _obscureLoginPassword = true;
   bool _isLoading = false;
   bool _isVerifying = false;
   bool _isSignUpVerification = false;
@@ -130,6 +132,7 @@ class _PeaceOnboardingBottomSheetState
     _signUpPasswordController.dispose();
     _signUpNameController.dispose();
     _loginEmailController.dispose();
+    _loginPasswordController.dispose();
     _otpController.dispose();
     super.dispose();
   }
@@ -230,12 +233,12 @@ class _PeaceOnboardingBottomSheetState
         color: const Color(0xFF090A10),
         child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.fromLTRB(24, topInset > 36 ? 8 : 20, 24, 20),
+            padding: EdgeInsets.fromLTRB(24, topInset + 12, 24, 24),
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight: mq.size.height - mq.padding.top - mq.padding.bottom - 40,
+                  minHeight: mq.size.height - mq.padding.top - mq.padding.bottom - 48,
                 ),
                 child: IntrinsicHeight(
                   child: _buildCurrentView(context),
@@ -402,7 +405,7 @@ class _PeaceOnboardingBottomSheetState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Row(
           children: [
             InkWell(
@@ -428,7 +431,7 @@ class _PeaceOnboardingBottomSheetState
             ),
           ],
         ),
-        const SizedBox(height: 36),
+        const SizedBox(height: 48),
 
         const Text(
           "What's your email address?",
@@ -439,15 +442,25 @@ class _PeaceOnboardingBottomSheetState
             letterSpacing: -0.4,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         const Text(
           "You'll need to confirm this email later.",
           style: TextStyle(
-            fontSize: 13.5,
+            fontSize: 14,
             color: Colors.white60,
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 28),
+
+        const Text(
+          "Email",
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.white70,
+          ),
+        ),
+        const SizedBox(height: 8),
 
         TextField(
           controller: _signUpEmailController,
@@ -475,7 +488,7 @@ class _PeaceOnboardingBottomSheetState
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
 
         SizedBox(
           width: double.infinity,
@@ -628,7 +641,7 @@ class _PeaceOnboardingBottomSheetState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Row(
           children: [
             InkWell(
@@ -654,7 +667,7 @@ class _PeaceOnboardingBottomSheetState
             ),
           ],
         ),
-        const SizedBox(height: 36),
+        const SizedBox(height: 48),
 
         const Text(
           "Create a password",
@@ -665,15 +678,25 @@ class _PeaceOnboardingBottomSheetState
             letterSpacing: -0.4,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         const Text(
           "Use at least 6 characters.",
           style: TextStyle(
-            fontSize: 13.5,
+            fontSize: 14,
             color: Colors.white60,
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 28),
+
+        const Text(
+          "Password",
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.white70,
+          ),
+        ),
+        const SizedBox(height: 8),
 
         TextField(
           controller: _signUpPasswordController,
@@ -708,7 +731,7 @@ class _PeaceOnboardingBottomSheetState
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
 
         SizedBox(
           width: double.infinity,
@@ -750,7 +773,7 @@ class _PeaceOnboardingBottomSheetState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Row(
           children: [
             InkWell(
@@ -776,7 +799,7 @@ class _PeaceOnboardingBottomSheetState
             ),
           ],
         ),
-        const SizedBox(height: 36),
+        const SizedBox(height: 48),
 
         const Text(
           "What's your name?",
@@ -787,15 +810,25 @@ class _PeaceOnboardingBottomSheetState
             letterSpacing: -0.4,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         const Text(
           "This appears on your Peace profile.",
           style: TextStyle(
-            fontSize: 13.5,
+            fontSize: 14,
             color: Colors.white60,
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 28),
+
+        const Text(
+          "Name",
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.white70,
+          ),
+        ),
+        const SizedBox(height: 8),
 
         TextField(
           controller: _signUpNameController,
@@ -894,7 +927,7 @@ class _PeaceOnboardingBottomSheetState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Row(
           children: [
             InkWell(
@@ -911,7 +944,7 @@ class _PeaceOnboardingBottomSheetState
             ),
             const SizedBox(width: 12),
             const Text(
-              "Log in to Peace",
+              "Log in",
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -920,7 +953,7 @@ class _PeaceOnboardingBottomSheetState
             ),
           ],
         ),
-        const SizedBox(height: 36),
+        const SizedBox(height: 48),
 
         const Text(
           "Log in to Peace",
@@ -931,26 +964,33 @@ class _PeaceOnboardingBottomSheetState
             letterSpacing: -0.4,
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 10),
+        const Text(
+          "Welcome back! Enter your details to continue.",
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.white60,
+          ),
+        ),
+        const SizedBox(height: 28),
 
         const Text(
-          "Email",
+          "Email or Username",
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: Colors.white70,
           ),
         ),
         const SizedBox(height: 8),
 
         TextField(
           controller: _loginEmailController,
-          autofocus: true,
           keyboardType: TextInputType.emailAddress,
           style: const TextStyle(color: Colors.white, fontSize: 16),
           cursorColor: const Color(0xFF7C4DFF),
           decoration: InputDecoration(
-            hintText: "Enter your email",
+            hintText: "Enter your email or username",
             hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
             filled: true,
             fillColor: const Color(0xFF13141F),
@@ -969,7 +1009,67 @@ class _PeaceOnboardingBottomSheetState
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 18),
+
+        const Text(
+          "Password",
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.white70,
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        TextField(
+          controller: _loginPasswordController,
+          obscureText: _obscureLoginPassword,
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+          cursorColor: const Color(0xFF7C4DFF),
+          decoration: InputDecoration(
+            hintText: "Enter your password",
+            hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
+            filled: true,
+            fillColor: const Color(0xFF13141F),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscureLoginPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                color: Colors.white60,
+              ),
+              onPressed: () => setState(() => _obscureLoginPassword = !_obscureLoginPassword),
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF242638)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF242638)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.8),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: () => PeaceForgotPasswordDialog.show(context),
+            child: const Text(
+              "Forgot password?",
+              style: TextStyle(
+                color: Color(0xFF7C4DFF),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
 
         SizedBox(
           width: double.infinity,
@@ -987,22 +1087,26 @@ class _PeaceOnboardingBottomSheetState
             onPressed: _isLoading
                 ? null
                 : () async {
-                    final email = _loginEmailController.text.trim().toLowerCase();
-                    if (!auth.isValidEmail(email)) {
+                    final identifier = _loginEmailController.text.trim();
+                    final password = _loginPasswordController.text;
+                    if (identifier.isEmpty || password.isEmpty) {
                       auth.showCustomSnackBar(
-                        "Kripya valid email address daalein.",
-                        title: "Invalid Email",
+                        "Kripya Email/Username aur Password dono enter karein.",
+                        title: "Required Fields",
                       );
                       return;
                     }
 
                     setState(() => _isLoading = true);
-                    await auth.sendOtpToEmail(email, purpose: "Login");
-                    _targetEmail = email;
-                    _isSignUpVerification = false;
-                    _otpController.clear();
+                    final success = await auth.loginWithCredentials(
+                      identifier: identifier,
+                      password: password,
+                    );
                     setState(() => _isLoading = false);
-                    _goTo(OnboardingView.otpVerify);
+
+                    if (success && mounted) {
+                      Navigator.pop(context);
+                    }
                   },
             child: _isLoading
                 ? const SizedBox(
@@ -1011,12 +1115,12 @@ class _PeaceOnboardingBottomSheetState
                     child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                   )
                 : const Text(
-                    "Continue",
+                    "Log in",
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
           ),
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 24),
 
         Row(
           children: const [
@@ -1031,7 +1135,7 @@ class _PeaceOnboardingBottomSheetState
             Expanded(child: Divider(color: Colors.white24, thickness: 1)),
           ],
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 20),
 
         SizedBox(
           width: double.infinity,
@@ -1053,7 +1157,7 @@ class _PeaceOnboardingBottomSheetState
                 GoogleLogoWidget(size: 22),
                 SizedBox(width: 12),
                 Text(
-                  "Google",
+                  "Continue with Google",
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
@@ -1065,7 +1169,7 @@ class _PeaceOnboardingBottomSheetState
             ),
           ),
         ),
-        const SizedBox(height: 36),
+        const SizedBox(height: 28),
 
         Center(
           child: Row(
@@ -1080,7 +1184,7 @@ class _PeaceOnboardingBottomSheetState
                 child: const Text(
                   "Sign up",
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Color(0xFF7C4DFF),
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                     decoration: TextDecoration.underline,
@@ -1090,6 +1194,7 @@ class _PeaceOnboardingBottomSheetState
             ],
           ),
         ),
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -1990,6 +2095,13 @@ class _PeaceForgotPasswordDialogState extends State<PeaceForgotPasswordDialog> {
     }
 
     setState(() => _isLoading = true);
+    final exists = await auth.isEmailRegistered(email);
+    if (!exists) {
+      setState(() => _isLoading = false);
+      auth.showCustomSnackBar("Yeh Gmail kisi account se juda nahi hai! Pehle Sign Up karein.", title: "Email Not Found");
+      return;
+    }
+
     await auth.sendOtpToEmail(email, purpose: "Password Reset");
     setState(() {
       _isLoading = false;

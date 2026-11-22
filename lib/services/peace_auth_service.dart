@@ -384,30 +384,29 @@ class PeaceAuthService extends GetxService {
         showCustomSnackBar("Welcome back, ${user.name}!", title: "Login Successful 🎉");
         return true;
       }
-    } catch (e) {
-      debugPrint("VPS OTP Login error: $e");
+      if (e is DioException && e.response?.data is Map && e.response?.data["message"] != null) {
+        showCustomSnackBar(e.response!.data["message"].toString(), title: "Login Error");
+        return false;
+      }
     }
 
-    // Local fallback
-    final name = cleanEmail.split('@').first;
-    final capitalized = name.isNotEmpty ? name[0].toUpperCase() + name.substring(1) : "Peace User";
-    final user = PeaceUser(
-      userId: "user_${DateTime.now().millisecondsSinceEpoch}",
-      name: capitalized,
-      email: cleanEmail,
-      username: generateUniqueUsername(name),
-      isGuest: false,
-      createdAt: DateTime.now(),
-      lastSyncedAt: DateTime.now(),
-      downloadedSongIds: _getLocalDownloadedSongIds(),
-    );
-    await _saveUserToRegistry(user);
-    await _authBox.put("currentUser", user.toJson());
-    currentUser.value = user;
-    isLoggedIn.value = true;
-    isGuest.value = false;
-    showCustomSnackBar("Welcome back, ${user.name}!", title: "Login Successful 🎉");
-    return true;
+    // Local fallback check
+    final registry = _getRegisteredUsers();
+    if (registry.containsKey(cleanEmail)) {
+      final userData = registry[cleanEmail];
+      if (userData is Map) {
+        final savedUser = PeaceUser.fromJson(userData);
+        await _authBox.put("currentUser", savedUser.toJson());
+        currentUser.value = savedUser;
+        isLoggedIn.value = true;
+        isGuest.value = false;
+        showCustomSnackBar("Welcome back, ${savedUser.name}!", title: "Login Successful 🎉");
+        return true;
+      }
+    }
+
+    showCustomSnackBar("Koi account nahi mila is email se! Kripya Sign Up karein.", title: "Account Not Found");
+    return false;
   }
 
   Future<bool> resetPassword({
