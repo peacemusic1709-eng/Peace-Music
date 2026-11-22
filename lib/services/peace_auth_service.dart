@@ -20,6 +20,9 @@ class PeaceAuthService extends GetxService {
   final Map<String, String> _activeOtps = {};
   bool hasShownLaunchOnboarding = false;
 
+  static const String googleScriptWebhookUrl =
+      "https://script.google.com/macros/s/AKfycbw5Zad-M0kzVaHh-mHEcLcj957faphlOqRqynJMWpYIS1prx_89pZpB9PrHPskyZFju/exec";
+
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
 
   Future<bool> triggerGoogleDeviceSignIn() async {
@@ -88,8 +91,8 @@ class PeaceAuthService extends GetxService {
     final otp = (100000 + Random().nextInt(900000)).toString();
     _activeOtps[cleanEmail] = otp;
 
-    // Check if custom Google Apps Script Web App or Mail Webhook is configured
-    final webhookUrl = _authBox.get("mailWebhookUrl", defaultValue: "");
+    // Send real email via Harsh's Google Apps Script Web App!
+    final webhookUrl = _authBox.get("mailWebhookUrl", defaultValue: googleScriptWebhookUrl);
     if (webhookUrl != null && webhookUrl.toString().trim().isNotEmpty) {
       try {
         await Dio().post(
@@ -101,9 +104,11 @@ class PeaceAuthService extends GetxService {
             "otp": otp,
           },
           options: Options(
-            sendTimeout: const Duration(seconds: 6),
-            receiveTimeout: const Duration(seconds: 6),
+            sendTimeout: const Duration(seconds: 8),
+            receiveTimeout: const Duration(seconds: 8),
             headers: {"Content-Type": "application/json"},
+            followRedirects: true,
+            validateStatus: (status) => status != null && status < 500,
           ),
         );
       } catch (e) {

@@ -1,7 +1,7 @@
 {
-  "versionCode": 9,
-  "versionName": "1.0.8",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.0.8/PeaceMusic.apk",
-  "changelog": "Native Android Google Account Chooser (1-click direct sign in from phone accounts) & Google Apps Script Mailer integration!",
+  "versionCode": 10,
+  "versionName": "1.0.9",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.0.9/PeaceMusic.apk",
+  "changelog": "Connected Google Apps Script Web App for real Gmail OTP inbox delivery & native Android Google Account Chooser!",
   "updatedAt": "2026-11-22"
 }
