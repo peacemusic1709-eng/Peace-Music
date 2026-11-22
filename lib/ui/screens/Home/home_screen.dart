@@ -11,6 +11,7 @@ import '../Search/search_screen.dart';
 import '../Settings/settings_screen_controller.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/widgets/create_playlist_dialog.dart';
+import '../../widgets/peace_header.dart';
 import '../../navigator.dart';
 import '../../widgets/content_list_widget.dart';
 import '../../widgets/quickpickswidget.dart';
@@ -198,31 +199,7 @@ class Body extends StatelessWidget {
                         final items = homeScreenController
                                 .isContentFetched.value
                             ? [
-                                Container(
-                                  padding: const EdgeInsets.fromLTRB(0, 8, 0, 14),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                                    textBaseline: TextBaseline.alphabetic,
-                                    children: [
-                                      Text(
-                                        "Peace Music ",
-                                        style: TextStyle(
-                                          color: Theme.of(context).textTheme.titleLarge?.color ?? Colors.white,
-                                          fontSize: 26,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      Text(
-                                        "Made by Harsh",
-                                        style: TextStyle(
-                                          color: (Theme.of(context).textTheme.bodySmall?.color ?? Colors.white70).withOpacity(0.7),
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                const PeaceMusicHeader(),
                                 Obx(() {
                                   final scrollController = ScrollController();
                                   homeScreenController.contentScrollControllers

@@ -29,6 +29,16 @@ jobs:
           flutter-version: '3.24.5'
           cache: true
 
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -42,21 +52,27 @@ jobs:
           cp build/signed/*-aligned-debugSigned.apk PeaceMusic.apk || cp build/signed/*.apk PeaceMusic.apk
           ls -la PeaceMusic.apk
 
+      - name: Read version from version.json
+        id: get_version
+        run: |
+          VERSION_NAME=$(jq -r '.versionName' version.json)
+          echo "tag=v$VERSION_NAME" >> $GITHUB_OUTPUT
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PeaceMusic-v1.0.2
+          name: PeaceMusic-${{ steps.get_version.outputs.tag }}
           path: PeaceMusic.apk
 
       - name: Release APK to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.2
-          name: "Peace Music v1.0.2"
+          tag_name: ${{ steps.get_version.outputs.tag }}
+          name: "Peace Music ${{ steps.get_version.outputs.tag }}"
           body: |
-            Peace Music v1.0.2
-            - New Official App Logo (colored-logo)
-            - Animated Intro Splash Screen (Logo + Peace Music & Made by Harsh)
-            - Removed heart emoji from name
-            - Seamless zero-friction auto-updater
+            Peace Music ${{ steps.get_version.outputs.tag }}
+            - New Soundwave Logo
+            - Native Splash Screen Fix
+            - Translucent Modern Navigation Bar
+            - Header with Logo + Peace Music + Made by Harsh on all screens
           files: PeaceMusic.apk

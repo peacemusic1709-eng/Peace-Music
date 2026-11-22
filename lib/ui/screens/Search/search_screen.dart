@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../widgets/peace_header.dart';
 import 'components/search_item.dart';
 import '/ui/screens/Settings/settings_screen_controller.dart';
 import '../../widgets/modified_text_field.dart';
@@ -52,9 +53,11 @@ class SearchScreen extends StatelessWidget {
                   ),
             Expanded(
               child: Padding(
-                padding: EdgeInsets.only(top: topPadding, left: 5),
+                padding: EdgeInsets.only(top: topPadding, left: 5, right: 15),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const PeaceMusicHeader(padding: EdgeInsets.only(bottom: 8)),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(

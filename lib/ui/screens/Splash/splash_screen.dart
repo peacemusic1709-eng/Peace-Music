@@ -131,24 +131,21 @@ class _SplashScreenState extends State<SplashScreen>
                 Transform.scale(
                   scale: currentLogoScale,
                   child: Container(
-                    width: 72,
-                    height: 72,
+                    width: 76,
+                    height: 76,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.blueAccent.withOpacity(0.25),
-                          blurRadius: 18,
+                          color: const Color(0xFFE040FB).withOpacity(0.3),
+                          blurRadius: 22,
                           spreadRadius: 2,
                         ),
                       ],
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(36),
-                      child: Image.asset(
-                        'assets/icons/colored-logo.png',
-                        fit: BoxFit.cover,
-                      ),
+                    child: Image.asset(
+                      'assets/icons/colored-logo.png',
+                      fit: BoxFit.contain,
                     ),
                   ),
                 ),

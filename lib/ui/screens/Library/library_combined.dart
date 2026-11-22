@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../widgets/peace_header.dart';
 import '/ui/screens/Settings/settings_screen_controller.dart';
 import '/ui/widgets/piped_sync_widget.dart';
 import '../../widgets/create_playlist_dialog.dart';
@@ -16,9 +17,14 @@ class CombinedLibrary extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 85,
+        toolbarHeight: 95,
         backgroundColor: Theme.of(context).canvasColor,
         elevation: 0,
+        titleSpacing: 15,
+        title: const Padding(
+          padding: EdgeInsets.only(top: 25.0),
+          child: PeaceMusicHeader(padding: EdgeInsets.zero),
+        ),
         actions: [
           Obx(() => (settingscrnController.isLinkedWithPiped.isTrue)
               ? const PipedSyncWidget(
