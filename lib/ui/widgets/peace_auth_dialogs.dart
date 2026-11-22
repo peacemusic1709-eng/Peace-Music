@@ -94,6 +94,7 @@ class PeaceOnboardingBottomSheet extends StatefulWidget {
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       enableDrag: false,
       isDismissible: false,
@@ -185,135 +186,23 @@ class _PeaceOnboardingBottomSheetState
     bool loggedIn = false;
     try {
       loggedIn = await auth.triggerGoogleDeviceSignIn();
-    } catch (_) {}
-
-    setState(() => _isLoading = false);
-
-    if (loggedIn) {
-      if (mounted) Navigator.pop(context);
-      return;
+    } catch (e) {
+      debugPrint("Native Google Sign In exception: $e");
     }
 
-    // Fast fallback if native Play Services OAuth requires registered SHA-1
     if (mounted) {
-      _showGoogleQuickDialog(context);
+      setState(() => _isLoading = false);
     }
-  }
 
-  void _showGoogleQuickDialog(BuildContext parentContext) {
-    final auth = Get.find<PeaceAuthService>();
-    final initialEmail = _signUpEmailController.text.isNotEmpty
-        ? _signUpEmailController.text
-        : _loginEmailController.text;
-    final controller = TextEditingController(text: initialEmail);
-
-    showDialog(
-      context: parentContext,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF16161E),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(22),
-          side: const BorderSide(color: Colors.white12),
-        ),
-        contentPadding: const EdgeInsets.fromLTRB(22, 22, 22, 16),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const GoogleLogoWidget(size: 34),
-            const SizedBox(height: 14),
-            const Text(
-              "Continue with Google",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              "Apna Google Gmail select karein. Verified phone account hone ke karan bina kisi OTP ya password ke direct login ho jayega.",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white70, fontSize: 12.5, height: 1.4),
-            ),
-            const SizedBox(height: 18),
-            TextField(
-              controller: controller,
-              autofocus: true,
-              keyboardType: TextInputType.emailAddress,
-              style: const TextStyle(color: Colors.white, fontSize: 15),
-              cursorColor: const Color(0xFF6C5CE7),
-              decoration: InputDecoration(
-                hintText: "yourname@gmail.com",
-                hintStyle: const TextStyle(color: Colors.white30),
-                filled: true,
-                fillColor: const Color(0xFF20202A),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF333344)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF333344)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF4285F4), width: 1.5),
-                ),
-              ),
-            ),
-            const SizedBox(height: 18),
-            SizedBox(
-              width: double.infinity,
-              height: 46,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4285F4),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(23),
-                  ),
-                ),
-                onPressed: () async {
-                  final email = controller.text.trim().toLowerCase();
-                  if (!auth.isValidEmail(email)) {
-                    auth.showCustomSnackBar(
-                      "Kripya valid Gmail address enter karein.",
-                      title: "Invalid Email",
-                    );
-                    return;
-                  }
-                  final name = email.split('@').first;
-                  final capitalized = name.isNotEmpty
-                      ? name[0].toUpperCase() + name.substring(1)
-                      : "Google User";
-                  await auth.loginWithGoogle(email, capitalized);
-                  Navigator.pop(ctx);
-                  if (parentContext.mounted) {
-                    Navigator.pop(parentContext);
-                  }
-                },
-                child: const Text(
-                  "Continue with Google",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text("Cancel", style: TextStyle(color: Colors.white54)),
-            ),
-          ],
-        ),
-      ),
-    );
+    if (loggedIn && mounted) {
+      Navigator.pop(context);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context);
+    final topInset = mq.padding.top > 0 ? mq.padding.top : 24.0;
     return WillPopScope(
       onWillPop: () async {
         if (_currentView == OnboardingView.welcome) {
@@ -338,15 +227,15 @@ class _PeaceOnboardingBottomSheetState
       child: Container(
         height: mq.size.height,
         width: mq.size.width,
-        color: const Color(0xFF0D0D12),
+        color: const Color(0xFF090A10),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            padding: EdgeInsets.fromLTRB(24, topInset > 36 ? 8 : 20, 24, 20),
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight: mq.size.height - mq.padding.top - mq.padding.bottom - 24,
+                  minHeight: mq.size.height - mq.padding.top - mq.padding.bottom - 40,
                 ),
                 child: IntrinsicHeight(
                   child: _buildCurrentView(context),
@@ -383,26 +272,28 @@ class _PeaceOnboardingBottomSheetState
         const SizedBox(height: 24),
         const Spacer(),
 
-        // Logo
-        Container(
-          width: 96,
-          height: 96,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF6C5CE7).withOpacity(0.35),
-                blurRadius: 40,
-                spreadRadius: 4,
-              ),
-            ],
-          ),
-          child: Image.asset(
-            'assets/icons/colored-logo.png',
-            fit: BoxFit.contain,
+        // Brand Logo with Luxury Violet Glow
+        Center(
+          child: Container(
+            width: 104,
+            height: 104,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF7C4DFF).withOpacity(0.38),
+                  blurRadius: 48,
+                  spreadRadius: 4,
+                ),
+              ],
+            ),
+            child: Image.asset(
+              'assets/icons/colored-logo.png',
+              fit: BoxFit.contain,
+            ),
           ),
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 32),
 
         // Tagline
         const Text(
@@ -413,10 +304,10 @@ class _PeaceOnboardingBottomSheetState
             fontWeight: FontWeight.w800,
             color: Colors.white,
             letterSpacing: -0.8,
-            height: 1.2,
+            height: 1.25,
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
         const Text(
           "Lossless Audio Streaming • Made with ❤️ by Harsh",
           style: TextStyle(
@@ -435,10 +326,10 @@ class _PeaceOnboardingBottomSheetState
           height: 52,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6C5CE7),
+              backgroundColor: const Color(0xFF7C4DFF),
               foregroundColor: Colors.white,
-              elevation: 4,
-              shadowColor: const Color(0xFF6C5CE7).withOpacity(0.4),
+              elevation: 6,
+              shadowColor: const Color(0xFF7C4DFF).withOpacity(0.4),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(26),
               ),
@@ -454,7 +345,7 @@ class _PeaceOnboardingBottomSheetState
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
 
         // Button 2: Log in
         SizedBox(
@@ -463,7 +354,8 @@ class _PeaceOnboardingBottomSheetState
           child: OutlinedButton(
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white,
-              side: const BorderSide(color: Colors.white30, width: 1.2),
+              backgroundColor: const Color(0xFF13141F),
+              side: const BorderSide(color: Color(0xFF2C2E42), width: 1.2),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(26),
               ),
@@ -510,13 +402,22 @@ class _PeaceOnboardingBottomSheetState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 12),
         Row(
           children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-              onPressed: () => _goTo(OnboardingView.welcome),
+            InkWell(
+              onTap: () => _goTo(OnboardingView.welcome),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+              ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             const Text(
               "Create account",
               style: TextStyle(
@@ -527,7 +428,7 @@ class _PeaceOnboardingBottomSheetState
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 36),
 
         const Text(
           "What's your email address?",
@@ -542,35 +443,35 @@ class _PeaceOnboardingBottomSheetState
         const Text(
           "You'll need to confirm this email later.",
           style: TextStyle(
-            fontSize: 13,
-            color: Colors.white70,
+            fontSize: 13.5,
+            color: Colors.white60,
           ),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 24),
 
         TextField(
           controller: _signUpEmailController,
           autofocus: true,
           keyboardType: TextInputType.emailAddress,
           style: const TextStyle(color: Colors.white, fontSize: 16),
-          cursorColor: const Color(0xFF6C5CE7),
+          cursorColor: const Color(0xFF7C4DFF),
           decoration: InputDecoration(
             hintText: "Enter your email",
-            hintStyle: const TextStyle(color: Colors.white38, fontSize: 15),
+            hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
             filled: true,
-            fillColor: const Color(0xFF1E1E26),
+            fillColor: const Color(0xFF13141F),
             contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF242638)),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF242638)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFF6C5CE7), width: 1.5),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.8),
             ),
           ),
         ),
@@ -578,13 +479,15 @@ class _PeaceOnboardingBottomSheetState
 
         SizedBox(
           width: double.infinity,
-          height: 50,
+          height: 52,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6C5CE7),
+              backgroundColor: const Color(0xFF7C4DFF),
               foregroundColor: Colors.white,
+              elevation: 4,
+              shadowColor: const Color(0xFF7C4DFF).withOpacity(0.35),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(26),
               ),
             ),
             onPressed: () {
@@ -601,7 +504,7 @@ class _PeaceOnboardingBottomSheetState
                 showDialog(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    backgroundColor: const Color(0xFF1A1A22),
+                    backgroundColor: const Color(0xFF141520),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                       side: const BorderSide(color: Colors.white12),
@@ -628,7 +531,7 @@ class _PeaceOnboardingBottomSheetState
                       ),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF6C5CE7),
+                          backgroundColor: const Color(0xFF7C4DFF),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -682,13 +585,14 @@ class _PeaceOnboardingBottomSheetState
 
         SizedBox(
           width: double.infinity,
-          height: 50,
+          height: 52,
           child: OutlinedButton(
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white,
-              side: const BorderSide(color: Colors.white30, width: 1.2),
+              backgroundColor: const Color(0xFF13141F),
+              side: const BorderSide(color: Color(0xFF2C2E42), width: 1.2),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(26),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 20),
             ),
@@ -721,13 +625,22 @@ class _PeaceOnboardingBottomSheetState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 12),
         Row(
           children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-              onPressed: () => _goTo(OnboardingView.signUpEmail),
+            InkWell(
+              onTap: () => _goTo(OnboardingView.signUpEmail),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+              ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             const Text(
               "Create account",
               style: TextStyle(
@@ -738,7 +651,7 @@ class _PeaceOnboardingBottomSheetState
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 36),
 
         const Text(
           "Create a password",
@@ -753,23 +666,23 @@ class _PeaceOnboardingBottomSheetState
         const Text(
           "Use at least 6 characters.",
           style: TextStyle(
-            fontSize: 13,
-            color: Colors.white70,
+            fontSize: 13.5,
+            color: Colors.white60,
           ),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 24),
 
         TextField(
           controller: _signUpPasswordController,
           autofocus: true,
           obscureText: _obscurePassword,
           style: const TextStyle(color: Colors.white, fontSize: 16),
-          cursorColor: const Color(0xFF6C5CE7),
+          cursorColor: const Color(0xFF7C4DFF),
           decoration: InputDecoration(
             hintText: "Enter your password",
-            hintStyle: const TextStyle(color: Colors.white38, fontSize: 15),
+            hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
             filled: true,
-            fillColor: const Color(0xFF1E1E26),
+            fillColor: const Color(0xFF13141F),
             contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             suffixIcon: IconButton(
               icon: Icon(
@@ -779,16 +692,16 @@ class _PeaceOnboardingBottomSheetState
               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF242638)),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF242638)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFF6C5CE7), width: 1.5),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.8),
             ),
           ),
         ),
@@ -796,13 +709,15 @@ class _PeaceOnboardingBottomSheetState
 
         SizedBox(
           width: double.infinity,
-          height: 50,
+          height: 52,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6C5CE7),
+              backgroundColor: const Color(0xFF7C4DFF),
               foregroundColor: Colors.white,
+              elevation: 4,
+              shadowColor: const Color(0xFF7C4DFF).withOpacity(0.35),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(26),
               ),
             ),
             onPressed: () {
@@ -832,13 +747,22 @@ class _PeaceOnboardingBottomSheetState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 12),
         Row(
           children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-              onPressed: () => _goTo(OnboardingView.signUpPassword),
+            InkWell(
+              onTap: () => _goTo(OnboardingView.signUpPassword),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+              ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             const Text(
               "Create account",
               style: TextStyle(
@@ -849,7 +773,7 @@ class _PeaceOnboardingBottomSheetState
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 36),
 
         const Text(
           "What's your name?",
@@ -864,34 +788,34 @@ class _PeaceOnboardingBottomSheetState
         const Text(
           "This appears on your Peace profile.",
           style: TextStyle(
-            fontSize: 13,
-            color: Colors.white70,
+            fontSize: 13.5,
+            color: Colors.white60,
           ),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 24),
 
         TextField(
           controller: _signUpNameController,
           autofocus: true,
           style: const TextStyle(color: Colors.white, fontSize: 16),
-          cursorColor: const Color(0xFF6C5CE7),
+          cursorColor: const Color(0xFF7C4DFF),
           decoration: InputDecoration(
             hintText: "Your name",
-            hintStyle: const TextStyle(color: Colors.white38, fontSize: 15),
+            hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
             filled: true,
-            fillColor: const Color(0xFF1E1E26),
+            fillColor: const Color(0xFF13141F),
             contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF242638)),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF242638)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFF6C5CE7), width: 1.5),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.8),
             ),
           ),
         ),
@@ -909,13 +833,15 @@ class _PeaceOnboardingBottomSheetState
 
         SizedBox(
           width: double.infinity,
-          height: 50,
+          height: 52,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6C5CE7),
+              backgroundColor: const Color(0xFF7C4DFF),
               foregroundColor: Colors.white,
+              elevation: 4,
+              shadowColor: const Color(0xFF7C4DFF).withOpacity(0.35),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(26),
               ),
             ),
             onPressed: _isLoading
@@ -965,13 +891,22 @@ class _PeaceOnboardingBottomSheetState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 12),
         Row(
           children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-              onPressed: () => _goTo(OnboardingView.welcome),
+            InkWell(
+              onTap: () => _goTo(OnboardingView.welcome),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+              ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             const Text(
               "Log in to Peace",
               style: TextStyle(
@@ -982,7 +917,7 @@ class _PeaceOnboardingBottomSheetState
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 36),
 
         const Text(
           "Log in to Peace",
@@ -1010,24 +945,24 @@ class _PeaceOnboardingBottomSheetState
           autofocus: true,
           keyboardType: TextInputType.emailAddress,
           style: const TextStyle(color: Colors.white, fontSize: 16),
-          cursorColor: const Color(0xFF6C5CE7),
+          cursorColor: const Color(0xFF7C4DFF),
           decoration: InputDecoration(
             hintText: "Enter your email",
-            hintStyle: const TextStyle(color: Colors.white38, fontSize: 15),
+            hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
             filled: true,
-            fillColor: const Color(0xFF1E1E26),
+            fillColor: const Color(0xFF13141F),
             contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF242638)),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF242638)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFF6C5CE7), width: 1.5),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.8),
             ),
           ),
         ),
@@ -1035,13 +970,15 @@ class _PeaceOnboardingBottomSheetState
 
         SizedBox(
           width: double.infinity,
-          height: 50,
+          height: 52,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6C5CE7),
+              backgroundColor: const Color(0xFF7C4DFF),
               foregroundColor: Colors.white,
+              elevation: 4,
+              shadowColor: const Color(0xFF7C4DFF).withOpacity(0.35),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(26),
               ),
             ),
             onPressed: _isLoading
@@ -1095,13 +1032,14 @@ class _PeaceOnboardingBottomSheetState
 
         SizedBox(
           width: double.infinity,
-          height: 50,
+          height: 52,
           child: OutlinedButton(
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white,
-              side: const BorderSide(color: Colors.white30, width: 1.2),
+              backgroundColor: const Color(0xFF13141F),
+              side: const BorderSide(color: Color(0xFF2C2E42), width: 1.2),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(26),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 20),
             ),
@@ -1159,15 +1097,24 @@ class _PeaceOnboardingBottomSheetState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 12),
         Row(
           children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-              onPressed: () => _goTo(_isSignUpVerification
+            InkWell(
+              onTap: () => _goTo(_isSignUpVerification
                   ? OnboardingView.signUpName
                   : OnboardingView.loginEmail),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+              ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             const Text(
               "Verify Code",
               style: TextStyle(
@@ -1178,7 +1125,7 @@ class _PeaceOnboardingBottomSheetState
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 36),
 
         const Text(
           "Enter your 6-digit code",
@@ -1191,10 +1138,10 @@ class _PeaceOnboardingBottomSheetState
         ),
         const SizedBox(height: 8),
         Text(
-          "We sent a 6-digit code to $_targetEmail.\nCheck your inbox or Spam/Junk folder.",
+          "We sent a 6-digit code to $_targetEmail.\nCheck your inbox or Spam folder.",
           style: const TextStyle(
-            fontSize: 13,
-            color: Colors.white70,
+            fontSize: 13.5,
+            color: Colors.white60,
             height: 1.4,
           ),
         ),
@@ -1212,25 +1159,25 @@ class _PeaceOnboardingBottomSheetState
             letterSpacing: 14,
           ),
           maxLength: 6,
-          cursorColor: const Color(0xFF6C5CE7),
+          cursorColor: const Color(0xFF7C4DFF),
           decoration: InputDecoration(
             counterText: "",
             hintText: "••••••",
             hintStyle: const TextStyle(color: Colors.white24, letterSpacing: 14),
             filled: true,
-            fillColor: const Color(0xFF1E1E26),
+            fillColor: const Color(0xFF13141F),
             contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF242638)),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF242638)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFF6C5CE7), width: 1.5),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.8),
             ),
           ),
           onChanged: (val) {
@@ -1243,13 +1190,15 @@ class _PeaceOnboardingBottomSheetState
 
         SizedBox(
           width: double.infinity,
-          height: 50,
+          height: 52,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6C5CE7),
+              backgroundColor: const Color(0xFF7C4DFF),
               foregroundColor: Colors.white,
+              elevation: 4,
+              shadowColor: const Color(0xFF7C4DFF).withOpacity(0.35),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(26),
               ),
             ),
             onPressed: _isVerifying
@@ -1287,7 +1236,7 @@ class _PeaceOnboardingBottomSheetState
                 child: const Text(
                   "Resend Code",
                   style: TextStyle(
-                    color: Color(0xFFA29BFE),
+                    color: Color(0xFF7C4DFF),
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                     decoration: TextDecoration.underline,

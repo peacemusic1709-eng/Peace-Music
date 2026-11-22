@@ -1,7 +1,7 @@
 {
-  "versionCode": 13,
-  "versionName": "1.1.2",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.1.2/PeaceMusic.apk",
-  "changelog": "Official Peace Music Sender Name, Direct Sign Up without OTP, Fast Google One-Tap, Persistent Local Guest across Logouts & Modern Dark Theme Profile Card",
+  "versionCode": 14,
+  "versionName": "1.1.3",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.1.3/PeaceMusic.apk",
+  "changelog": "Native Google 1-Tap Account Selector without typing, Full-Screen Onboarding Sheet covering bottom nav, Shifted responsive UI with top padding, Sleek midnight theme, Account Info ExpansionTile with Log Out tile",
   "updatedAt": "2026-11-22"
 }

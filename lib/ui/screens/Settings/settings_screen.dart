@@ -5,6 +5,8 @@ import 'package:harmonymusic/utils/lang_mapping.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../widgets/peace_profile_card.dart';
+import '../../widgets/peace_auth_dialogs.dart';
+import '../../../services/peace_auth_service.dart';
 import '../../widgets/common_dialog_widget.dart';
 import '../../widgets/cust_switch.dart';
 import '../../widgets/export_file_dialog.dart';
@@ -695,7 +697,31 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   ),
                 ],
-              )
+              ),
+              Obx(() {
+                final auth = Get.find<PeaceAuthService>();
+                if (!auth.isLoggedIn.value) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.only(top: 14),
+                  child: ListTile(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    tileColor: Colors.red.withOpacity(0.08),
+                    leading: const Icon(Icons.logout_rounded, color: Color(0xFFFF5252)),
+                    title: const Text(
+                      "Log Out",
+                      style: TextStyle(color: Color(0xFFFF5252), fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: const Text(
+                      "Sign out of Peace Music",
+                      style: TextStyle(color: Colors.white54, fontSize: 12),
+                    ),
+                    onTap: () {
+                      auth.logout();
+                      PeaceOnboardingBottomSheet.show(context);
+                    },
+                  ),
+                );
+              }),
             ],
           )),
           Padding(

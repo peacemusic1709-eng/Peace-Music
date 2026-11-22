@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:audio_service/audio_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
@@ -26,6 +27,22 @@ class PeaceAuthService extends GetxService {
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
 
   Future<bool> triggerGoogleDeviceSignIn() async {
+    // 1. Android OS Native Account Picker (shows system Google accounts and returns selected Gmail with 0 setup)
+    try {
+      const channel = MethodChannel("peace_music/account_picker");
+      final email = await channel.invokeMethod<String>("pickDeviceGoogleAccount");
+      if (email != null && email.trim().isNotEmpty) {
+        final cleanEmail = email.trim().toLowerCase();
+        final name = cleanEmail.split('@').first;
+        final capitalized = name.isNotEmpty ? name[0].toUpperCase() + name.substring(1) : "Google User";
+        await loginWithGoogle(cleanEmail, capitalized);
+        return true;
+      }
+    } catch (e) {
+      debugPrint("Native AccountManager picker: $e");
+    }
+
+    // 2. GoogleSignIn Plugin Fallback
     try {
       try {
         await _googleSignIn.signOut();
