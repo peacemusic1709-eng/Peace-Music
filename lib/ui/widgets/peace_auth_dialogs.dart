@@ -179,34 +179,41 @@ class PeaceOnboardingBottomSheet extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Quick Google Sign-In One-Tap
+            // Quick Google Sign-In One-Tap (Direct phone account picker)
             InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: () {
-                Navigator.pop(context);
-                showDialog(
-                  context: context,
-                  builder: (ctx) => const GoogleLoginDialog(),
-                );
+              borderRadius: BorderRadius.circular(16),
+              onTap: () async {
+                final auth = Get.find<PeaceAuthService>();
+                final loggedIn = await auth.triggerGoogleDeviceSignIn();
+                if (loggedIn) {
+                  Navigator.pop(context);
+                } else if (auth.currentUser.value == null) {
+                  // Fallback dialog if device picker needs manual entry
+                  Navigator.pop(context);
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => const GoogleLoginDialog(),
+                  );
+                }
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.06),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white12),
+                  color: Colors.white.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white24),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: const [
-                    Icon(Icons.g_mobiledata_rounded, color: Colors.blueAccent, size: 26),
-                    SizedBox(width: 6),
+                    Icon(Icons.g_mobiledata_rounded, color: Colors.blueAccent, size: 30),
+                    SizedBox(width: 8),
                     Text(
-                      "Fast Sign In with Google",
+                      "Continue with Google (Phone Accounts)",
                       style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white70,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
                   ],

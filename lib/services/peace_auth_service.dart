@@ -4,6 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
 import '../models/media_Item_builder.dart';
 import '../models/peace_user.dart';
@@ -18,6 +19,30 @@ class PeaceAuthService extends GetxService {
   final isSyncing = false.obs;
   final Map<String, String> _activeOtps = {};
   bool hasShownLaunchOnboarding = false;
+
+  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+
+  Future<bool> triggerGoogleDeviceSignIn() async {
+    try {
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {}
+
+      final account = await _googleSignIn.signIn();
+      if (account != null) {
+        final email = account.email;
+        final name = account.displayName ?? email.split('@').first;
+        final photoUrl = account.photoUrl;
+
+        await loginWithGoogle(email, name, photoUrl: photoUrl);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint("Native GoogleSignIn error: $e");
+      return false;
+    }
+  }
 
   Box get _authBox => Hive.box("PeaceAuth");
 

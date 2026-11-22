@@ -1,7 +1,7 @@
 {
-  "versionCode": 8,
-  "versionName": "1.0.7",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.0.7/PeaceMusic.apk",
-  "changelog": "Instant OTP Auto-Fill, Direct Webhook / Google Script Mail Delivery, and Fast Google Sign In without delay!",
+  "versionCode": 9,
+  "versionName": "1.0.8",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.0.8/PeaceMusic.apk",
+  "changelog": "Native Android Google Account Chooser (1-click direct sign in from phone accounts) & Google Apps Script Mailer integration!",
   "updatedAt": "2026-11-22"
 }

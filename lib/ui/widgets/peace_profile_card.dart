@@ -253,11 +253,15 @@ class PeaceProfileCard extends StatelessWidget {
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (ctx) => const GoogleLoginDialog(),
-                        );
+                      onPressed: () async {
+                        final auth = Get.find<PeaceAuthService>();
+                        final success = await auth.triggerGoogleDeviceSignIn();
+                        if (!success && auth.currentUser.value?.isGuest == true) {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => const GoogleLoginDialog(),
+                          );
+                        }
                       },
                       child: const Text(
                         "Link Gmail",
