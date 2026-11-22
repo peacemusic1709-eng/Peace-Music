@@ -680,11 +680,11 @@ class SettingsScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         Text(
-                          "Peace Music ❤️",
+                          "Peace Music",
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         Text(
-                          "Made with ❤️ by Harsh",
+                          "Made by Harsh",
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                         Text(settingsController.currentVersion,

@@ -14,6 +14,7 @@ import 'utils/app_link_controller.dart';
 import '/services/audio_handler.dart';
 import '/services/music_service.dart';
 import '/ui/home.dart';
+import 'ui/screens/Splash/splash_screen.dart';
 import '/ui/player/player_controller.dart';
 import 'ui/screens/Settings/settings_screen_controller.dart';
 import '/ui/utils/theme_controller.dart';
@@ -44,7 +45,7 @@ class MyApp extends StatelessWidget {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     return GetMaterialApp(
         title: 'Peace Music',
-        home: const Home(),
+        home: const SplashScreen(),
         debugShowCheckedModeBanner: false,
         translations: Languages(),
         locale:

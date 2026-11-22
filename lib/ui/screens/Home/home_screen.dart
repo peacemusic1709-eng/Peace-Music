@@ -213,7 +213,7 @@ class Body extends StatelessWidget {
                                         ),
                                       ),
                                       Text(
-                                        "Made by harsh",
+                                        "Made by Harsh",
                                         style: TextStyle(
                                           color: (Theme.of(context).textTheme.bodySmall?.color ?? Colors.white70).withOpacity(0.7),
                                           fontSize: 13,

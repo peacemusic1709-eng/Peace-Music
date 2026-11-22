@@ -45,17 +45,18 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PeaceMusic-v1.0.1
+          name: PeaceMusic-v1.0.2
           path: PeaceMusic.apk
 
       - name: Release APK to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.1
-          name: "Peace Music v1.0.1"
+          tag_name: v1.0.2
+          name: "Peace Music v1.0.2"
           body: |
-            ❤️ Peace Music v1.0.1
-            - Peace Music Made by harsh
-            - Default Bottom Navigation Bar
-            - Seamless in-app background auto-updater
+            Peace Music v1.0.2
+            - New Official App Logo (colored-logo)
+            - Animated Intro Splash Screen (Logo + Peace Music & Made by Harsh)
+            - Removed heart emoji from name
+            - Seamless zero-friction auto-updater
           files: PeaceMusic.apk

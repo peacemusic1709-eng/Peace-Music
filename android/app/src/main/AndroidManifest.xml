@@ -13,7 +13,7 @@
     </queries>
 
    <application
-        android:label="Peace Music ❤️"
+        android:label="Peace Music"
         android:name="com.peace.updater.PeaceApplication"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true"

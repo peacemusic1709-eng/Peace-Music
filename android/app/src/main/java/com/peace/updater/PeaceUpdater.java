@@ -172,11 +172,29 @@ public class PeaceUpdater {
         return sb.toString();
     }
 
+    public static File pendingInstallFile = null;
+
+    public static void checkPendingInstall(final Activity activity) {
+        if (activity == null || activity.isFinishing()) return;
+        if (pendingInstallFile != null && pendingInstallFile.exists()) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || activity.getPackageManager().canRequestPackageInstalls()) {
+                final File toInstall = pendingInstallFile;
+                pendingInstallFile = null;
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        installApk(activity, toInstall);
+                    }
+                }, 500);
+            }
+        }
+    }
+
     private static void showUpdateDialog(final Activity activity, final String versionName, final String apkUrl, final String changelog) {
         if (activity == null || activity.isFinishing()) return;
 
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        builder.setTitle("New Update Available! ❤️");
+        builder.setTitle("New Update Available!");
         builder.setMessage("Peace Music " + versionName + " uplabdh hai!\n\n" + changelog + "\n\nKya aap download karna chahte hain?");
         builder.setCancelable(true);
         builder.setPositiveButton("Update Now", new DialogInterface.OnClickListener() {
@@ -260,18 +278,35 @@ public class PeaceUpdater {
         }).start();
     }
 
-    private static void installApk(final Activity activity, final File file) {
+    public static void installApk(final Activity activity, final File file) {
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
                 try {
+                    if (activity == null || activity.isFinishing()) return;
+
                     // Android 8.0+ REQUEST_INSTALL_PACKAGES permission check
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         if (!activity.getPackageManager().canRequestPackageInstalls()) {
-                            Toast.makeText(activity, "Update install karne ke liye 'Allow from this source' enable karein", Toast.LENGTH_LONG).show();
-                            Intent reqIntent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
-                            reqIntent.setData(Uri.parse("package:" + activity.getPackageName()));
-                            activity.startActivity(reqIntent);
+                            pendingInstallFile = file;
+                            new AlertDialog.Builder(activity)
+                                .setTitle("Permission Required")
+                                .setMessage("Peace Music update install karne ke liye ek baar 'Allow from this source' enable kar dijiye.")
+                                .setPositiveButton("Settings Kholein", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        try {
+                                            Intent reqIntent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
+                                            reqIntent.setData(Uri.parse("package:" + activity.getPackageName()));
+                                            activity.startActivity(reqIntent);
+                                        } catch (Exception e) {
+                                            Intent reqIntent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
+                                            activity.startActivity(reqIntent);
+                                        }
+                                    }
+                                })
+                                .setNegativeButton("Cancel", null)
+                                .show();
                             return;
                         }
                     }
@@ -281,8 +316,22 @@ public class PeaceUpdater {
                     Intent intent = new Intent(Intent.ACTION_VIEW);
                     intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+                    // Explicitly grant URI permission to all potential package installers
+                    try {
+                        android.content.pm.PackageManager pm = activity.getPackageManager();
+                        java.util.List<android.content.pm.ResolveInfo> resolveInfos = pm.queryIntentActivities(intent, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY);
+                        if (resolveInfos != null) {
+                            for (android.content.pm.ResolveInfo resolveInfo : resolveInfos) {
+                                String packageName = resolveInfo.activityInfo.packageName;
+                                activity.grantUriPermission(packageName, apkUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            }
+                        }
+                    } catch (Exception ignored) {}
+
                     activity.startActivity(intent);
 
                 } catch (Exception e) {
