@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:video_player/video_player.dart';
 import '../../services/peace_auth_service.dart';
 
 enum OnboardingView {
@@ -126,8 +127,38 @@ class _PeaceOnboardingBottomSheetState
   bool _isSignUpVerification = false;
   String _targetEmail = "";
 
+  VideoPlayerController? _videoController;
+  bool _isVideoInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initVideoBackground();
+  }
+
+  void _initVideoBackground() {
+    try {
+      _videoController = VideoPlayerController.asset("assets/videos/welcome_video.mp4")
+        ..initialize().then((_) {
+          if (mounted) {
+            setState(() {
+              _isVideoInitialized = true;
+            });
+            _videoController?.setLooping(true);
+            _videoController?.setVolume(0.0);
+            _videoController?.play();
+          }
+        }).catchError((e) {
+          debugPrint("Video initialization error: $e");
+        });
+    } catch (e) {
+      debugPrint("Video asset load error: $e");
+    }
+  }
+
   @override
   void dispose() {
+    _videoController?.dispose();
     _signUpEmailController.dispose();
     _signUpPasswordController.dispose();
     _signUpNameController.dispose();
@@ -141,6 +172,13 @@ class _PeaceOnboardingBottomSheetState
     setState(() {
       _currentView = view;
     });
+    if (_videoController != null && _isVideoInitialized) {
+      if (view == OnboardingView.welcome) {
+        _videoController?.play();
+      } else {
+        _videoController?.pause();
+      }
+    }
   }
 
   Future<void> _performFastOtpVerify(String otp) async {
@@ -231,21 +269,62 @@ class _PeaceOnboardingBottomSheetState
         height: mq.size.height,
         width: mq.size.width,
         color: const Color(0xFF090A10),
-        child: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(24, topInset + 12, 24, 24),
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: mq.size.height - mq.padding.top - mq.padding.bottom - 48,
+        child: Stack(
+          children: [
+            // Video Background (Visible on Welcome page)
+            if (_currentView == OnboardingView.welcome &&
+                _videoController != null &&
+                _isVideoInitialized &&
+                _videoController!.value.isInitialized)
+              Positioned.fill(
+                child: SizedBox.expand(
+                  child: FittedBox(
+                    fit: BoxFit.cover,
+                    child: SizedBox(
+                      width: _videoController!.value.size.width,
+                      height: _videoController!.value.size.height,
+                      child: VideoPlayer(_videoController!),
+                    ),
+                  ),
                 ),
-                child: IntrinsicHeight(
-                  child: _buildCurrentView(context),
+              ),
+
+            // Subtle dark overlay gradient for readability
+            if (_currentView == OnboardingView.welcome && _isVideoInitialized)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.40),
+                        Colors.black.withOpacity(0.60),
+                        const Color(0xFF090A10).withOpacity(0.92),
+                      ],
+                      stops: const [0.0, 0.45, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+
+            SafeArea(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(24, topInset + 12, 24, 24),
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: mq.size.height - mq.padding.top - mq.padding.bottom - 48,
+                    ),
+                    child: IntrinsicHeight(
+                      child: _buildCurrentView(context),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -2065,6 +2144,13 @@ class _PeaceOtpVerificationDialogState extends State<PeaceOtpVerificationDialog>
 /// Forgot Password Dialog (OTP + New Password Reset)
 class PeaceForgotPasswordDialog extends StatefulWidget {
   const PeaceForgotPasswordDialog({super.key});
+
+  static Future<void> show(BuildContext context) {
+    return showDialog(
+      context: context,
+      builder: (_) => const PeaceForgotPasswordDialog(),
+    );
+  }
 
   @override
   State<PeaceForgotPasswordDialog> createState() => _PeaceForgotPasswordDialogState();

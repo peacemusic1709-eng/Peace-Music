@@ -384,6 +384,8 @@ class PeaceAuthService extends GetxService {
         showCustomSnackBar("Welcome back, ${user.name}!", title: "Login Successful 🎉");
         return true;
       }
+    } catch (e) {
+      debugPrint("VPS OTP Login error: $e");
       if (e is DioException && e.response?.data is Map && e.response?.data["message"] != null) {
         showCustomSnackBar(e.response!.data["message"].toString(), title: "Login Error");
         return false;

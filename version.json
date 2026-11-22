@@ -1,7 +1,7 @@
 {
-  "versionCode": 16,
-  "versionName": "1.1.5",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.1.5/PeaceMusic.apk",
-  "changelog": "Standard Email+Password Login with database verification (zero accidental OTPs / auto-registrations), Forgot password with OTP, shifted down responsive label texts on create account",
+  "versionCode": 17,
+  "versionName": "1.1.6",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.1.6/PeaceMusic.apk",
+  "changelog": "Looping Video Background on Welcome screen, Clean Email/Password Login with database verification without sending accidental OTPs, Forgot password with OTP, shifted down responsive label text on create account",
   "updatedAt": "2026-11-22"
 }
