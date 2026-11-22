@@ -386,30 +386,6 @@ class PeaceAuthService extends GetxService {
       duration: const Duration(seconds: 4),
     );
   }
-    final userId = "google_${cleanEmail.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}";
-
-    final updated = currentUser.value!.copyWith(
-      userId: userId,
-      name: cleanName,
-      email: cleanEmail,
-      isGuest: false,
-      photoUrl: photoUrl,
-      lastSyncedAt: DateTime.now(),
-    );
-
-    await _authBox.put("currentUser", updated.toJson());
-    currentUser.value = updated;
-    isGuest.value = false;
-
-    // Sync all existing guest playlists and favorites to this Google account
-    await syncWithCloud(showNotice: false);
-
-    showCustomSnackBar(
-      "Guest data successfully linked to $cleanEmail",
-      title: "Account Upgraded to Cloud!",
-      duration: const Duration(seconds: 4),
-    );
-  }
 
   Future<void> syncWithCloud({bool showNotice = true}) async {
     if (currentUser.value == null) return;
