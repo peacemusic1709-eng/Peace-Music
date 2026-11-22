@@ -81,6 +81,12 @@ class PeaceAuthService extends GetxService {
 
   String? getOtpForEmail(String email) => _activeOtps[email.trim().toLowerCase()];
 
+  bool isEmailRegistered(String email) {
+    final cleanEmail = email.trim().toLowerCase();
+    final registry = _getRegisteredUsers();
+    return registry.containsKey(cleanEmail);
+  }
+
   bool isValidEmail(String email) {
     final clean = email.trim().toLowerCase();
     return RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").hasMatch(clean);
@@ -227,6 +233,72 @@ class PeaceAuthService extends GetxService {
       return true;
     }
     return false;
+  }
+
+  Future<bool> loginWithEmailOtp({
+    required String email,
+    required String enteredOtp,
+  }) async {
+    final cleanEmail = email.trim().toLowerCase();
+    if (!verifyOtp(cleanEmail, enteredOtp)) {
+      showCustomSnackBar("Galat OTP code! Kripya check karein.", title: "Invalid OTP");
+      return false;
+    }
+
+    final registry = _getRegisteredUsers();
+    PeaceUser user;
+    if (registry.containsKey(cleanEmail)) {
+      final raw = registry[cleanEmail];
+      if (raw is Map) {
+        user = PeaceUser.fromJson(Map<String, dynamic>.from(raw));
+      } else {
+        final name = cleanEmail.split('@').first;
+        final capitalized = name.isNotEmpty ? name[0].toUpperCase() + name.substring(1) : "Peace User";
+        user = PeaceUser(
+          userId: "user_${DateTime.now().millisecondsSinceEpoch}",
+          name: capitalized,
+          email: cleanEmail,
+          username: generateUniqueUsername(name),
+          isGuest: false,
+          createdAt: DateTime.now(),
+          lastSyncedAt: DateTime.now(),
+          downloadedSongIds: _getLocalDownloadedSongIds(),
+        );
+      }
+    } else {
+      final name = cleanEmail.split('@').first;
+      final capitalized = name.isNotEmpty ? name[0].toUpperCase() + name.substring(1) : "Peace User";
+      user = PeaceUser(
+        userId: "user_${DateTime.now().millisecondsSinceEpoch}",
+        name: capitalized,
+        email: cleanEmail,
+        username: generateUniqueUsername(name),
+        isGuest: false,
+        createdAt: DateTime.now(),
+        lastSyncedAt: DateTime.now(),
+        downloadedSongIds: _getLocalDownloadedSongIds(),
+      );
+      await _saveUserToRegistry(user);
+    }
+
+    await _authBox.put("currentUser", user.toJson());
+    currentUser.value = user;
+    isLoggedIn.value = true;
+    isGuest.value = false;
+
+    // Restore cloud backup if present
+    final cloudKey = "cloud_sync_${user.userId}";
+    if (_authBox.containsKey(cloudKey)) {
+      try {
+        final raw = _authBox.get(cloudKey);
+        if (raw is Map) await _restoreCloudData(Map<String, dynamic>.from(raw));
+      } catch (_) {}
+    } else {
+      await syncWithCloud(showNotice: false);
+    }
+
+    showCustomSnackBar("Welcome back, ${user.name}!", title: "Login Successful 🎉");
+    return true;
   }
 
   Future<bool> resetPassword({

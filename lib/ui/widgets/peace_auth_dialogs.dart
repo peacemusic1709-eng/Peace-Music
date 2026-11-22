@@ -3,255 +3,1169 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../services/peace_auth_service.dart';
 
-/// App Launch First-Time / Guest Onboarding Sheet with Blurred Backdrop
-class PeaceOnboardingBottomSheet extends StatelessWidget {
+enum OnboardingView {
+  welcome,
+  signUpEmail,
+  signUpPassword,
+  signUpName,
+  loginEmail,
+  otpVerify,
+}
+
+/// Official Vector 4-Color Google 'G' Logo
+class GoogleLogoWidget extends StatelessWidget {
+  final double size;
+  const GoogleLogoWidget({super.key, this.size = 20});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: CustomPaint(
+        painter: _GoogleLogoPainter(),
+      ),
+    );
+  }
+}
+
+class _GoogleLogoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double w = size.width;
+    final double h = size.height;
+    final center = Offset(w / 2, h / 2);
+    final strokeWidth = w * 0.22;
+    final radius = (w - strokeWidth) / 2;
+    final rect = Rect.fromCircle(center: center, radius: radius);
+
+    final bluePaint = Paint()
+      ..color = const Color(0xFF4285F4)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.butt;
+
+    final greenPaint = Paint()
+      ..color = const Color(0xFF34A853)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.butt;
+
+    final yellowPaint = Paint()
+      ..color = const Color(0xFFFBBC05)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.butt;
+
+    final redPaint = Paint()
+      ..color = const Color(0xFFEA4335)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.butt;
+
+    // Top arc: Red
+    canvas.drawArc(rect, -2.4, 1.6, false, redPaint);
+    // Left-bottom arc: Yellow
+    canvas.drawArc(rect, 2.3, 1.5, false, yellowPaint);
+    // Bottom arc: Green
+    canvas.drawArc(rect, 0.75, 1.55, false, greenPaint);
+    // Right arc: Blue
+    canvas.drawArc(rect, -0.8, 1.55, false, bluePaint);
+
+    // Center horizontal bar for G
+    final barPaint = Paint()
+      ..color = const Color(0xFF4285F4)
+      ..style = PaintingStyle.fill;
+    final barRect = Rect.fromLTWH(w * 0.44, h * 0.38, w * 0.52, strokeWidth);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(barRect, Radius.circular(strokeWidth / 4)),
+      barPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// App Launch First-Time / Guest Onboarding Sheet with Full-Screen Spotify-Tier Flow
+class PeaceOnboardingBottomSheet extends StatefulWidget {
   const PeaceOnboardingBottomSheet({super.key});
 
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      enableDrag: false,
+      isDismissible: false,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.65),
       builder: (ctx) => const PeaceOnboardingBottomSheet(),
     );
   }
 
   @override
+  State<PeaceOnboardingBottomSheet> createState() =>
+      _PeaceOnboardingBottomSheetState();
+}
+
+class _PeaceOnboardingBottomSheetState
+    extends State<PeaceOnboardingBottomSheet> {
+  OnboardingView _currentView = OnboardingView.welcome;
+
+  final _signUpEmailController = TextEditingController();
+  final _signUpPasswordController = TextEditingController();
+  final _signUpNameController = TextEditingController();
+  final _loginEmailController = TextEditingController();
+  final _otpController = TextEditingController();
+
+  bool _obscurePassword = true;
+  bool _isLoading = false;
+  bool _isVerifying = false;
+  bool _isSignUpVerification = false;
+  String _targetEmail = "";
+
+  @override
+  void dispose() {
+    _signUpEmailController.dispose();
+    _signUpPasswordController.dispose();
+    _signUpNameController.dispose();
+    _loginEmailController.dispose();
+    _otpController.dispose();
+    super.dispose();
+  }
+
+  void _goTo(OnboardingView view) {
+    setState(() {
+      _currentView = view;
+    });
+  }
+
+  Future<void> _performFastOtpVerify(String otp) async {
+    final auth = Get.find<PeaceAuthService>();
+    if (_isVerifying) return;
+    setState(() => _isVerifying = true);
+
+    try {
+      if (_isSignUpVerification) {
+        final valid = auth.verifyOtp(_targetEmail, otp);
+        if (valid) {
+          auth.showCustomSnackBar(
+            "Account verify ho gaya! Welcome to Peace Music.",
+            title: "Sign Up Verified 🎉",
+            duration: const Duration(seconds: 4),
+          );
+          if (mounted) Navigator.pop(context);
+        } else {
+          auth.showCustomSnackBar(
+            "Galat OTP code! Kripya check karein.",
+            title: "Invalid Code",
+          );
+          setState(() => _isVerifying = false);
+        }
+      } else {
+        final success = await auth.loginWithEmailOtp(
+          email: _targetEmail,
+          enteredOtp: otp,
+        );
+        if (success) {
+          if (mounted) Navigator.pop(context);
+        } else {
+          setState(() => _isVerifying = false);
+        }
+      }
+    } catch (e) {
+      debugPrint("OTP verification error: $e");
+      setState(() => _isVerifying = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF121214).withOpacity(0.92),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.12),
-            width: 1,
+    final mq = MediaQuery.of(context);
+    return Container(
+      height: mq.size.height,
+      width: mq.size.width,
+      color: const Color(0xFF0D0D12),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: mq.size.height - mq.padding.top - mq.padding.bottom - 24,
+              ),
+              child: IntrinsicHeight(
+                child: _buildCurrentView(context),
+              ),
+            ),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFE040FB).withOpacity(0.15),
-              blurRadius: 40,
-              spreadRadius: 2,
-              offset: const Offset(0, -6),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCurrentView(BuildContext context) {
+    switch (_currentView) {
+      case OnboardingView.welcome:
+        return _buildWelcomeView(context);
+      case OnboardingView.signUpEmail:
+        return _buildSignUpEmailView(context);
+      case OnboardingView.signUpPassword:
+        return _buildSignUpPasswordView(context);
+      case OnboardingView.signUpName:
+        return _buildSignUpNameView(context);
+      case OnboardingView.loginEmail:
+        return _buildLoginEmailView(context);
+      case OnboardingView.otpVerify:
+        return _buildOtpVerifyView(context);
+    }
+  }
+
+  // 1. WELCOME SCREEN
+  Widget _buildWelcomeView(BuildContext context) {
+    return Column(
+      children: [
+        Align(
+          alignment: Alignment.topRight,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 8, right: 8),
+            child: IconButton(
+              icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 24),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+        ),
+        const Spacer(),
+
+        // Logo
+        Container(
+          width: 96,
+          height: 96,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF6C5CE7).withOpacity(0.35),
+                blurRadius: 40,
+                spreadRadius: 4,
+              ),
+            ],
+          ),
+          child: Image.asset(
+            'assets/icons/colored-logo.png',
+            fit: BoxFit.contain,
+          ),
+        ),
+        const SizedBox(height: 28),
+
+        // Tagline
+        const Text(
+          "Millions of songs.\nFree on Peace.",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+            letterSpacing: -0.8,
+            height: 1.2,
+          ),
+        ),
+        const SizedBox(height: 10),
+        const Text(
+          "Lossless Audio Streaming • Made with ❤️ by Harsh",
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.white60,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.3,
+          ),
+        ),
+
+        const Spacer(),
+
+        // Button 1: Sign up for free
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6C5CE7),
+              foregroundColor: Colors.white,
+              elevation: 4,
+              shadowColor: const Color(0xFF6C5CE7).withOpacity(0.4),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(26),
+              ),
+            ),
+            onPressed: () => _goTo(OnboardingView.signUpEmail),
+            child: const Text(
+              "Sign up for free",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Button 2: Log in
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.white,
+              side: const BorderSide(color: Colors.white30, width: 1.2),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(26),
+              ),
+            ),
+            onPressed: () => _goTo(OnboardingView.loginEmail),
+            child: const Text(
+              "Log in",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Continue as Guest
+        TextButton(
+          onPressed: () async {
+            final auth = Get.find<PeaceAuthService>();
+            await auth.loginAsGuest("Guest User");
+            if (context.mounted) Navigator.pop(context);
+          },
+          child: const Text(
+            "Continue as Guest",
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.white54,
+              decoration: TextDecoration.underline,
+              decorationColor: Colors.white30,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+
+  // 2. SIGN UP: STEP 1 (EMAIL)
+  Widget _buildSignUpEmailView(BuildContext context) {
+    final auth = Get.find<PeaceAuthService>();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+              onPressed: () => _goTo(OnboardingView.welcome),
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              "Create account",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ],
         ),
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 34),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Drag indicator handle
-            Container(
-              width: 44,
-              height: 4.5,
-              decoration: BoxDecoration(
-                color: Colors.white30,
-                borderRadius: BorderRadius.circular(3),
+        const SizedBox(height: 24),
+
+        const Text(
+          "What's your email address?",
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+            letterSpacing: -0.4,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          "You'll need to confirm this email later.",
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.white70,
+          ),
+        ),
+        const SizedBox(height: 22),
+
+        TextField(
+          controller: _signUpEmailController,
+          autofocus: true,
+          keyboardType: TextInputType.emailAddress,
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+          cursorColor: const Color(0xFF6C5CE7),
+          decoration: InputDecoration(
+            hintText: "Enter your email",
+            hintStyle: const TextStyle(color: Colors.white38, fontSize: 15),
+            filled: true,
+            fillColor: const Color(0xFF1E1E26),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFF6C5CE7), width: 1.5),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6C5CE7),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25),
               ),
             ),
-            const SizedBox(height: 24),
+            onPressed: () {
+              final email = _signUpEmailController.text.trim().toLowerCase();
+              if (!auth.isValidEmail(email)) {
+                auth.showCustomSnackBar(
+                  "Kripya valid email address enter karein.",
+                  title: "Invalid Email",
+                );
+                return;
+              }
 
-            // Logo & Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  'assets/icons/colored-logo.png',
-                  width: 52,
-                  height: 52,
-                ),
-                const SizedBox(width: 14),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      "Peace Music",
+              if (auth.isEmailRegistered(email)) {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    backgroundColor: const Color(0xFF1A1A22),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: const BorderSide(color: Colors.white12),
+                    ),
+                    title: const Text(
+                      "This email is already connected to an account",
                       style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
                         color: Colors.white,
-                        letterSpacing: 0.3,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Text(
-                      "Made by Harsh",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFFE040FB),
-                        letterSpacing: 0.8,
-                      ),
+                    content: const Text(
+                      "Do you want to log in instead?",
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
-                  ],
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text(
+                          "Close",
+                          style: TextStyle(color: Colors.white60, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6C5CE7),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _loginEmailController.text = email;
+                          _goTo(OnboardingView.loginEmail);
+                        },
+                        child: const Text(
+                          "Go to Login",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+                return;
+              }
+
+              final defaultName = email.split('@').first.replaceAll(RegExp(r'[^a-zA-Z0-9]'), ' ').trim();
+              if (defaultName.isNotEmpty) {
+                _signUpNameController.text = defaultName[0].toUpperCase() + defaultName.substring(1);
+              }
+
+              _goTo(OnboardingView.signUpPassword);
+            },
+            child: const Text(
+              "Continue",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+        const SizedBox(height: 28),
+
+        Row(
+          children: const [
+            Expanded(child: Divider(color: Colors.white24, thickness: 1)),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 14),
+              child: Text(
+                "or sign up with",
+                style: TextStyle(color: Colors.white54, fontSize: 13),
+              ),
+            ),
+            Expanded(child: Divider(color: Colors.white24, thickness: 1)),
+          ],
+        ),
+        const SizedBox(height: 22),
+
+        SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.white,
+              side: const BorderSide(color: Colors.white30, width: 1.2),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+            ),
+            onPressed: () async {
+              final loggedIn = await auth.triggerGoogleDeviceSignIn();
+              if (loggedIn && context.mounted) {
+                Navigator.pop(context);
+              }
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                GoogleLogoWidget(size: 22),
+                SizedBox(width: 12),
+                Text(
+                  "Google",
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 0.3,
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+          ),
+        ),
+      ],
+    );
+  }
 
+  // 3. SIGN UP: STEP 2 (PASSWORD)
+  Widget _buildSignUpPasswordView(BuildContext context) {
+    final auth = Get.find<PeaceAuthService>();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+              onPressed: () => _goTo(OnboardingView.signUpEmail),
+            ),
+            const SizedBox(width: 8),
             const Text(
-              "Lossless Audio Streaming • Apne gaane aur playlists sabhi phones me sync karein.",
-              textAlign: TextAlign.center,
+              "Create account",
               style: TextStyle(
-                fontSize: 13,
-                color: Colors.white70,
-                height: 1.45,
-              ),
-            ),
-            const SizedBox(height: 28),
-
-            // 1. LOGIN BUTTON (Primary)
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE040FB),
-                  foregroundColor: Colors.white,
-                  elevation: 6,
-                  shadowColor: const Color(0xFFE040FB).withOpacity(0.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.pop(context);
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => const PeaceLoginDialog(),
-                  );
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.login_rounded, size: 22),
-                    SizedBox(width: 10),
-                    Text(
-                      "Log In",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // 2. SIGN UP BUTTON (Secondary)
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: const BorderSide(color: Colors.white30, width: 1.4),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.pop(context);
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => const PeaceSignUpDialog(),
-                  );
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.person_add_alt_1_rounded, size: 22, color: Colors.white70),
-                    SizedBox(width: 10),
-                    Text(
-                      "Sign Up (New Account)",
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Quick Google Sign-In One-Tap (Direct phone account picker)
-            InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () async {
-                final auth = Get.find<PeaceAuthService>();
-                final loggedIn = await auth.triggerGoogleDeviceSignIn();
-                if (loggedIn) {
-                  Navigator.pop(context);
-                } else if (auth.currentUser.value == null) {
-                  // Fallback dialog if device picker needs manual entry
-                  Navigator.pop(context);
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => const GoogleLoginDialog(),
-                  );
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white24),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(Icons.g_mobiledata_rounded, color: Colors.blueAccent, size: 30),
-                    SizedBox(width: 8),
-                    Text(
-                      "Continue with Google (Phone Accounts)",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 18),
-
-            // 3. GUEST LOGIN LABEL (Underneath)
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                showDialog(
-                  context: context,
-                  builder: (ctx) => const PeaceGuestDialog(),
-                );
-              },
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Text(
-                    "Continue as Guest",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white60,
-                      decoration: TextDecoration.underline,
-                      decorationColor: Colors.white38,
-                    ),
-                  ),
-                  SizedBox(width: 6),
-                  Icon(Icons.arrow_forward_rounded, size: 16, color: Colors.white54),
-                ],
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
           ],
         ),
-      ),
+        const SizedBox(height: 24),
+
+        const Text(
+          "Create a password",
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+            letterSpacing: -0.4,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          "Use at least 6 characters.",
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.white70,
+          ),
+        ),
+        const SizedBox(height: 22),
+
+        TextField(
+          controller: _signUpPasswordController,
+          autofocus: true,
+          obscureText: _obscurePassword,
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+          cursorColor: const Color(0xFF6C5CE7),
+          decoration: InputDecoration(
+            hintText: "Enter your password",
+            hintStyle: const TextStyle(color: Colors.white38, fontSize: 15),
+            filled: true,
+            fillColor: const Color(0xFF1E1E26),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                color: Colors.white60,
+              ),
+              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFF6C5CE7), width: 1.5),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6C5CE7),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25),
+              ),
+            ),
+            onPressed: () {
+              final pwd = _signUpPasswordController.text;
+              if (pwd.length < 6) {
+                auth.showCustomSnackBar(
+                  "Password kam se kam 6 characters ka hona chahiye.",
+                  title: "Weak Password",
+                );
+                return;
+              }
+              _goTo(OnboardingView.signUpName);
+            },
+            child: const Text(
+              "Continue",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 4. SIGN UP: STEP 3 (NAME & TERMS)
+  Widget _buildSignUpNameView(BuildContext context) {
+    final auth = Get.find<PeaceAuthService>();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+              onPressed: () => _goTo(OnboardingView.signUpPassword),
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              "Create account",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        const Text(
+          "What's your name?",
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+            letterSpacing: -0.4,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          "This appears on your Peace profile.",
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.white70,
+          ),
+        ),
+        const SizedBox(height: 22),
+
+        TextField(
+          controller: _signUpNameController,
+          autofocus: true,
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+          cursorColor: const Color(0xFF6C5CE7),
+          decoration: InputDecoration(
+            hintText: "Your name",
+            hintStyle: const TextStyle(color: Colors.white38, fontSize: 15),
+            filled: true,
+            fillColor: const Color(0xFF1E1E26),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFF6C5CE7), width: 1.5),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        const Text(
+          "By tapping Create account, you agree to Peace Music's Terms of Service and Privacy Policy.",
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.white60,
+            height: 1.45,
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6C5CE7),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25),
+              ),
+            ),
+            onPressed: _isLoading
+                ? null
+                : () async {
+                    final email = _signUpEmailController.text.trim().toLowerCase();
+                    final password = _signUpPasswordController.text;
+                    final name = _signUpNameController.text.trim().isEmpty
+                        ? "Peace User"
+                        : _signUpNameController.text.trim();
+                    final username = auth.generateUniqueUsername(name);
+
+                    setState(() => _isLoading = true);
+                    final registered = await auth.registerUser(
+                      name: name,
+                      email: email,
+                      username: username,
+                      password: password,
+                    );
+
+                    if (registered) {
+                      await auth.sendOtpToEmail(email, purpose: "Sign Up Verification");
+                      _targetEmail = email;
+                      _isSignUpVerification = true;
+                      _otpController.clear();
+                      setState(() => _isLoading = false);
+                      _goTo(OnboardingView.otpVerify);
+                    } else {
+                      setState(() => _isLoading = false);
+                    }
+                  },
+            child: _isLoading
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  )
+                : const Text(
+                    "Create account",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 5. LOG IN FLOW
+  Widget _buildLoginEmailView(BuildContext context) {
+    final auth = Get.find<PeaceAuthService>();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+              onPressed: () => _goTo(OnboardingView.welcome),
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              "Log in to Peace",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        const Text(
+          "Log in to Peace",
+          style: TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+            letterSpacing: -0.4,
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        const Text(
+          "Email",
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        TextField(
+          controller: _loginEmailController,
+          autofocus: true,
+          keyboardType: TextInputType.emailAddress,
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+          cursorColor: const Color(0xFF6C5CE7),
+          decoration: InputDecoration(
+            hintText: "Enter your email",
+            hintStyle: const TextStyle(color: Colors.white38, fontSize: 15),
+            filled: true,
+            fillColor: const Color(0xFF1E1E26),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFF6C5CE7), width: 1.5),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6C5CE7),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25),
+              ),
+            ),
+            onPressed: _isLoading
+                ? null
+                : () async {
+                    final email = _loginEmailController.text.trim().toLowerCase();
+                    if (!auth.isValidEmail(email)) {
+                      auth.showCustomSnackBar(
+                        "Kripya valid email address daalein.",
+                        title: "Invalid Email",
+                      );
+                      return;
+                    }
+
+                    setState(() => _isLoading = true);
+                    await auth.sendOtpToEmail(email, purpose: "Login");
+                    _targetEmail = email;
+                    _isSignUpVerification = false;
+                    _otpController.clear();
+                    setState(() => _isLoading = false);
+                    _goTo(OnboardingView.otpVerify);
+                  },
+            child: _isLoading
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  )
+                : const Text(
+                    "Continue",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+          ),
+        ),
+        const SizedBox(height: 28),
+
+        Row(
+          children: const [
+            Expanded(child: Divider(color: Colors.white24, thickness: 1)),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 14),
+              child: Text(
+                "or log in with",
+                style: TextStyle(color: Colors.white54, fontSize: 13),
+              ),
+            ),
+            Expanded(child: Divider(color: Colors.white24, thickness: 1)),
+          ],
+        ),
+        const SizedBox(height: 22),
+
+        SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.white,
+              side: const BorderSide(color: Colors.white30, width: 1.2),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+            ),
+            onPressed: () async {
+              final loggedIn = await auth.triggerGoogleDeviceSignIn();
+              if (loggedIn && context.mounted) {
+                Navigator.pop(context);
+              }
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                GoogleLogoWidget(size: 22),
+                SizedBox(width: 12),
+                Text(
+                  "Google",
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 36),
+
+        Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Don't have an account? ",
+                style: TextStyle(color: Colors.white60, fontSize: 14),
+              ),
+              InkWell(
+                onTap: () => _goTo(OnboardingView.signUpEmail),
+                child: const Text(
+                  "Sign up",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 6. FAST OTP VERIFICATION
+  Widget _buildOtpVerifyView(BuildContext context) {
+    final auth = Get.find<PeaceAuthService>();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+              onPressed: () => _goTo(_isSignUpVerification
+                  ? OnboardingView.signUpName
+                  : OnboardingView.loginEmail),
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              "Verify Code",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        const Text(
+          "Enter your 6-digit code",
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+            letterSpacing: -0.4,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "We sent a code to $_targetEmail. Check your inbox or spam folder.",
+          style: const TextStyle(
+            fontSize: 13,
+            color: Colors.white70,
+            height: 1.4,
+          ),
+        ),
+        const SizedBox(height: 28),
+
+        TextField(
+          controller: _otpController,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 14,
+          ),
+          maxLength: 6,
+          cursorColor: const Color(0xFF6C5CE7),
+          decoration: InputDecoration(
+            counterText: "",
+            hintText: "••••••",
+            hintStyle: const TextStyle(color: Colors.white24, letterSpacing: 14),
+            filled: true,
+            fillColor: const Color(0xFF1E1E26),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFF2E2E3A)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFF6C5CE7), width: 1.5),
+            ),
+          ),
+          onChanged: (val) {
+            if (val.trim().length == 6) {
+              _performFastOtpVerify(val.trim());
+            }
+          },
+        ),
+        const SizedBox(height: 20),
+
+        SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6C5CE7),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25),
+              ),
+            ),
+            onPressed: _isVerifying
+                ? null
+                : () => _performFastOtpVerify(_otpController.text.trim()),
+            child: _isVerifying
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  )
+                : const Text(
+                    "Verify & Continue",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+          ),
+        ),
+        const SizedBox(height: 22),
+
+        Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Didn't receive code? ",
+                style: TextStyle(color: Colors.white60, fontSize: 13),
+              ),
+              InkWell(
+                onTap: () async {
+                  await auth.sendOtpToEmail(
+                    _targetEmail,
+                    purpose: _isSignUpVerification ? "Sign Up Verification" : "Login",
+                  );
+                },
+                child: const Text(
+                  "Resend Code",
+                  style: TextStyle(
+                    color: Color(0xFFA29BFE),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
