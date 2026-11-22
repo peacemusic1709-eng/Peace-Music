@@ -67,10 +67,11 @@ class HomeScreenController extends GetxController {
           if (rel is List && rel.isNotEmpty) {
             for (var item in rel) {
               if (item is Map && item.containsKey("contents")) {
-                final parsed = item["type"] == "Album Content"
+                final dynamic parsed = item["type"] == "Album Content"
                     ? AlbumContent.fromJson(item)
                     : PlaylistContent.fromJson(item);
-                if (!dynamicEndlessContent.any((dynamic existing) => existing.title == parsed.title)) {
+                final String parsedTitle = (parsed as dynamic).title?.toString() ?? "";
+                if (!dynamicEndlessContent.any((dynamic existing) => (existing as dynamic).title == parsedTitle)) {
                   newSections.add(parsed);
                 }
               }
@@ -89,11 +90,12 @@ class HomeScreenController extends GetxController {
           if (charts.isNotEmpty) {
             for (var item in charts) {
               if (item is Map && item.containsKey("contents")) {
-                final parsed = item["type"] == "Album Content"
+                final dynamic parsed = item["type"] == "Album Content"
                     ? AlbumContent.fromJson(item)
                     : PlaylistContent.fromJson(item);
-                if (!dynamicEndlessContent.any((dynamic existing) => existing.title == parsed.title) &&
-                    !middleContent.any((dynamic existing) => existing.title == parsed.title)) {
+                final String parsedTitle = (parsed as dynamic).title?.toString() ?? "";
+                if (!dynamicEndlessContent.any((dynamic existing) => (existing as dynamic).title == parsedTitle) &&
+                    !middleContent.any((dynamic existing) => (existing as dynamic).title == parsedTitle)) {
                   newSections.add(parsed);
                 }
               }
