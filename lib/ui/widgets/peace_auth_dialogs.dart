@@ -490,7 +490,7 @@ class _PeaceOnboardingBottomSheetState
                 borderRadius: BorderRadius.circular(26),
               ),
             ),
-            onPressed: () {
+            onPressed: () async {
               final email = _signUpEmailController.text.trim().toLowerCase();
               if (!auth.isValidEmail(email)) {
                 auth.showCustomSnackBar(
@@ -500,7 +500,10 @@ class _PeaceOnboardingBottomSheetState
                 return;
               }
 
-              if (auth.isEmailRegistered(email)) {
+              final isRegistered = await auth.isEmailRegistered(email);
+              if (!context.mounted) return;
+
+              if (isRegistered) {
                 showDialog(
                   context: context,
                   builder: (ctx) => AlertDialog(
