@@ -1,7 +1,9 @@
 class PeaceUser {
   final String userId;
   final String name;
+  final String username;
   final String email;
+  final String password;
   final bool isGuest;
   final String? photoUrl;
   final DateTime createdAt;
@@ -11,7 +13,9 @@ class PeaceUser {
   PeaceUser({
     required this.userId,
     required this.name,
+    this.username = '',
     required this.email,
+    this.password = '',
     required this.isGuest,
     this.photoUrl,
     required this.createdAt,
@@ -23,7 +27,9 @@ class PeaceUser {
     return {
       'userId': userId,
       'name': name,
+      'username': username,
       'email': email,
+      'password': password,
       'isGuest': isGuest,
       'photoUrl': photoUrl,
       'createdAt': createdAt.toIso8601String(),
@@ -36,7 +42,9 @@ class PeaceUser {
     return PeaceUser(
       userId: json['userId'] ?? '',
       name: json['name'] ?? 'User',
+      username: json['username'] ?? '',
       email: json['email'] ?? '',
+      password: json['password'] ?? '',
       isGuest: json['isGuest'] ?? false,
       photoUrl: json['photoUrl'],
       createdAt: json['createdAt'] != null
@@ -55,7 +63,9 @@ class PeaceUser {
   PeaceUser copyWith({
     String? userId,
     String? name,
+    String? username,
     String? email,
+    String? password,
     bool? isGuest,
     String? photoUrl,
     DateTime? createdAt,
@@ -65,7 +75,9 @@ class PeaceUser {
     return PeaceUser(
       userId: userId ?? this.userId,
       name: name ?? this.name,
+      username: username ?? this.username,
       email: email ?? this.email,
+      password: password ?? this.password,
       isGuest: isGuest ?? this.isGuest,
       photoUrl: photoUrl ?? this.photoUrl,
       createdAt: createdAt ?? this.createdAt,

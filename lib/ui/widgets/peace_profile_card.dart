@@ -84,8 +84,8 @@ class PeaceProfileCard extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black87,
+                        backgroundColor: const Color(0xFFE040FB),
+                        foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -93,17 +93,14 @@ class PeaceProfileCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (ctx) => const GoogleLoginDialog(),
-                        );
+                        PeaceOnboardingBottomSheet.show(context);
                       },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: const [
-                          Icon(Icons.g_mobiledata_rounded, color: Colors.blueAccent, size: 26),
-                          SizedBox(width: 4),
-                          Text("Google Sign In", style: TextStyle(fontWeight: FontWeight.bold)),
+                          Icon(Icons.login_rounded, color: Colors.white, size: 20),
+                          SizedBox(width: 6),
+                          Text("Log In / Sign Up", style: TextStyle(fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -122,7 +119,7 @@ class PeaceProfileCard extends StatelessWidget {
                       onPressed: () {
                         showDialog(
                           context: context,
-                          builder: (ctx) => const GuestLoginDialog(),
+                          builder: (ctx) => const PeaceGuestDialog(),
                         );
                       },
                       child: const Text("Guest Mode"),
@@ -203,9 +200,9 @@ class PeaceProfileCard extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 3),
-                        const Text(
-                          "Data is saved locally on this device",
-                          style: TextStyle(
+                        Text(
+                          "${user.username.isNotEmpty ? '${user.username} • ' : ''}Guest Profile (Local)",
+                          style: const TextStyle(
                             fontSize: 12,
                             color: Colors.white60,
                           ),
@@ -341,10 +338,10 @@ class PeaceProfileCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        user.email,
+                        "${user.username.isNotEmpty ? '${user.username} • ' : ''}${user.email}",
                         style: const TextStyle(
                           fontSize: 12,
-                          color: Colors.white60,
+                          color: Colors.white70,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),

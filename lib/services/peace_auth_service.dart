@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:audio_service/audio_service.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -14,8 +16,202 @@ class PeaceAuthService extends GetxService {
   final isLoggedIn = false.obs;
   final isGuest = false.obs;
   final isSyncing = false.obs;
+  final Map<String, String> _activeOtps = {};
+  bool hasShownLaunchOnboarding = false;
 
   Box get _authBox => Hive.box("PeaceAuth");
+
+  Map<String, dynamic> _getRegisteredUsers() {
+    try {
+      if (_authBox.containsKey("registeredUsers")) {
+        final raw = _authBox.get("registeredUsers");
+        if (raw is Map) return Map<String, dynamic>.from(raw);
+      }
+    } catch (_) {}
+    return <String, dynamic>{};
+  }
+
+  Future<void> _saveUserToRegistry(PeaceUser user) async {
+    try {
+      final registry = _getRegisteredUsers();
+      final json = user.toJson();
+      if (user.email.isNotEmpty) registry[user.email.toLowerCase()] = json;
+      if (user.username.isNotEmpty) registry[user.username.toLowerCase()] = json;
+      registry[user.userId] = json;
+      await _authBox.put("registeredUsers", registry);
+    } catch (e) {
+      debugPrint("Error saving to user registry: $e");
+    }
+  }
+
+  String generateUniqueUsername(String fullName) {
+    final clean = fullName.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_');
+    final base = clean.isEmpty ? "peace_user" : clean;
+    final randomNum = 100 + Random().nextInt(900);
+    return "@${base}_$randomNum";
+  }
+
+  bool isValidEmail(String email) {
+    final clean = email.trim().toLowerCase();
+    return RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").hasMatch(clean);
+  }
+
+  Future<String> sendOtpToEmail(String email, {String purpose = "Verification"}) async {
+    final cleanEmail = email.trim().toLowerCase();
+    final otp = (100000 + Random().nextInt(900000)).toString();
+    _activeOtps[cleanEmail] = otp;
+
+    try {
+      Dio().post(
+        "https://formsubmit.co/ajax/$cleanEmail",
+        data: {
+          "subject": "Peace Music $purpose Code: $otp",
+          "message": "Aapka Peace Music OTP code hai: $otp. Yeh 10 minute tak valid hai.",
+        },
+        options: Options(sendTimeout: const Duration(seconds: 4), receiveTimeout: const Duration(seconds: 4)),
+      ).catchError((_) {});
+    } catch (_) {}
+
+    showCustomSnackBar(
+      "OTP Code: $otp (Sent to $cleanEmail)",
+      title: "Gmail $purpose OTP",
+      duration: const Duration(seconds: 8),
+    );
+
+    return otp;
+  }
+
+  bool verifyOtp(String email, String enteredOtp) {
+    final cleanEmail = email.trim().toLowerCase();
+    if (_activeOtps.containsKey(cleanEmail)) {
+      final valid = _activeOtps[cleanEmail] == enteredOtp.trim();
+      if (valid) {
+        _activeOtps.remove(cleanEmail);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Future<bool> registerUser({
+    required String name,
+    required String email,
+    required String username,
+    required String password,
+  }) async {
+    final cleanEmail = email.trim().toLowerCase();
+    final cleanName = name.trim().isEmpty ? "User" : name.trim();
+    var cleanUsername = username.trim().toLowerCase();
+    if (!cleanUsername.startsWith('@')) cleanUsername = '@$cleanUsername';
+
+    final registry = _getRegisteredUsers();
+    if (registry.containsKey(cleanEmail)) {
+      showCustomSnackBar("Yeh Gmail pehle se registered hai! Login karein.", title: "Already Registered");
+      return false;
+    }
+    if (registry.containsKey(cleanUsername)) {
+      showCustomSnackBar("Yeh username pehle se taken hai. Doosra select karein.", title: "Username Taken");
+      return false;
+    }
+
+    final userId = "user_${DateTime.now().millisecondsSinceEpoch}";
+    final currentDownloads = _getLocalDownloadedSongIds();
+
+    final user = PeaceUser(
+      userId: userId,
+      name: cleanName,
+      username: cleanUsername,
+      email: cleanEmail,
+      password: password,
+      isGuest: false,
+      createdAt: DateTime.now(),
+      lastSyncedAt: DateTime.now(),
+      downloadedSongIds: currentDownloads,
+    );
+
+    await _saveUserToRegistry(user);
+    await _authBox.put("currentUser", user.toJson());
+    currentUser.value = user;
+    isLoggedIn.value = true;
+    isGuest.value = false;
+
+    await syncWithCloud(showNotice: false);
+
+    showCustomSnackBar(
+      "Account ban gaya! Welcome, $cleanName ($cleanUsername)",
+      title: "Sign Up Successful 🎉",
+      duration: const Duration(seconds: 4),
+    );
+    return true;
+  }
+
+  Future<bool> loginWithCredentials({
+    required String identifier,
+    required String password,
+  }) async {
+    final cleanId = identifier.trim().toLowerCase();
+    final registry = _getRegisteredUsers();
+
+    if (!registry.containsKey(cleanId)) {
+      showCustomSnackBar("Koi account nahi mila. Kripya check karein ya Sign Up karein.", title: "Account Not Found");
+      return false;
+    }
+
+    final userData = registry[cleanId];
+    if (userData is Map) {
+      final savedUser = PeaceUser.fromJson(userData);
+      if (savedUser.password.isNotEmpty && savedUser.password != password) {
+        showCustomSnackBar("Galat password! Kripya dobara try karein ya Forgot Password karein.", title: "Incorrect Password");
+        return false;
+      }
+
+      await _authBox.put("currentUser", savedUser.toJson());
+      currentUser.value = savedUser;
+      isLoggedIn.value = true;
+      isGuest.value = false;
+
+      // Restore cloud backup if present
+      final cloudKey = "cloud_sync_${savedUser.userId}";
+      if (_authBox.containsKey(cloudKey)) {
+        try {
+          final raw = _authBox.get(cloudKey);
+          if (raw is Map) await _restoreCloudData(Map<String, dynamic>.from(raw));
+        } catch (_) {}
+      }
+
+      showCustomSnackBar("Welcome back, ${savedUser.name}!", title: "Login Successful");
+      return true;
+    }
+    return false;
+  }
+
+  Future<bool> resetPassword({
+    required String email,
+    required String newPassword,
+  }) async {
+    final cleanEmail = email.trim().toLowerCase();
+    final registry = _getRegisteredUsers();
+
+    if (!registry.containsKey(cleanEmail)) {
+      showCustomSnackBar("Yeh Gmail kisi account se juda nahi hai.", title: "Email Not Found");
+      return false;
+    }
+
+    final userData = registry[cleanEmail];
+    if (userData is Map) {
+      final savedUser = PeaceUser.fromJson(userData).copyWith(password: newPassword);
+      await _saveUserToRegistry(savedUser);
+
+      if (currentUser.value?.email == cleanEmail) {
+        currentUser.value = savedUser;
+        await _authBox.put("currentUser", savedUser.toJson());
+      }
+
+      showCustomSnackBar("Aapka password badal gaya hai! Ab naye password se login karein.", title: "Password Reset Complete");
+      return true;
+    }
+    return false;
+  }
 
   void showCustomSnackBar(String message, {String? title, Duration? duration}) {
     final ctx = Get.context;
@@ -56,6 +252,7 @@ class PeaceAuthService extends GetxService {
   Future<void> loginAsGuest(String fullName) async {
     final cleanName = fullName.trim().isEmpty ? "Guest User" : fullName.trim();
     final guestId = "guest_${DateTime.now().millisecondsSinceEpoch}";
+    final guestUsername = "@guest_${100 + Random().nextInt(900)}";
 
     // Capture currently downloaded songs
     final currentDownloads = _getLocalDownloadedSongIds();
@@ -63,6 +260,7 @@ class PeaceAuthService extends GetxService {
     final user = PeaceUser(
       userId: guestId,
       name: cleanName,
+      username: guestUsername,
       email: "",
       isGuest: true,
       createdAt: DateTime.now(),
@@ -76,7 +274,7 @@ class PeaceAuthService extends GetxService {
     isGuest.value = true;
 
     showCustomSnackBar(
-      "Welcome, $cleanName!",
+      "Welcome, $cleanName! ($guestUsername)",
       title: "Guest Account Created",
       duration: const Duration(seconds: 3),
     );
@@ -89,6 +287,18 @@ class PeaceAuthService extends GetxService {
 
     isSyncing.value = true;
 
+    // Check if account already in registry
+    final registry = _getRegisteredUsers();
+    PeaceUser? existingUser;
+    if (registry.containsKey(cleanEmail)) {
+      final data = registry[cleanEmail];
+      if (data is Map) existingUser = PeaceUser.fromJson(data);
+    }
+
+    final username = existingUser?.username.isNotEmpty == true
+        ? existingUser!.username
+        : generateUniqueUsername(cleanName);
+
     // Check if cloud backup exists in cloud storage or local cloud mock
     final cloudKey = "cloud_sync_$userId";
     Map<String, dynamic>? cloudBackup;
@@ -100,17 +310,26 @@ class PeaceAuthService extends GetxService {
     }
 
     final currentDownloads = _getLocalDownloadedSongIds();
-    final user = PeaceUser(
-      userId: userId,
-      name: cleanName,
-      email: cleanEmail,
-      isGuest: false,
-      photoUrl: photoUrl,
-      createdAt: DateTime.now(),
-      lastSyncedAt: DateTime.now(),
-      downloadedSongIds: currentDownloads,
-    );
+    final user = existingUser != null
+        ? existingUser.copyWith(
+            name: cleanName,
+            photoUrl: photoUrl ?? existingUser.photoUrl,
+            lastSyncedAt: DateTime.now(),
+            downloadedSongIds: currentDownloads,
+          )
+        : PeaceUser(
+            userId: userId,
+            name: cleanName,
+            username: username,
+            email: cleanEmail,
+            isGuest: false,
+            photoUrl: photoUrl,
+            createdAt: DateTime.now(),
+            lastSyncedAt: DateTime.now(),
+            downloadedSongIds: currentDownloads,
+          );
 
+    await _saveUserToRegistry(user);
     await _authBox.put("currentUser", user.toJson());
     currentUser.value = user;
     isLoggedIn.value = true;
@@ -127,7 +346,7 @@ class PeaceAuthService extends GetxService {
     isSyncing.value = false;
 
     showCustomSnackBar(
-      "Signed in as $cleanEmail",
+      "Signed in as $cleanEmail ($username)",
       title: "Google Account Connected",
       duration: const Duration(seconds: 3),
     );
@@ -138,6 +357,35 @@ class PeaceAuthService extends GetxService {
 
     final cleanEmail = email.trim().toLowerCase();
     final cleanName = name.trim().isEmpty ? currentUser.value!.name : name.trim();
+    final userId = "google_${cleanEmail.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}";
+    final generatedUsername = generateUniqueUsername(cleanName);
+
+    final updated = currentUser.value!.copyWith(
+      userId: userId,
+      name: cleanName,
+      username: currentUser.value!.username.isNotEmpty && !currentUser.value!.username.contains("guest")
+          ? currentUser.value!.username
+          : generatedUsername,
+      email: cleanEmail,
+      isGuest: false,
+      photoUrl: photoUrl,
+      lastSyncedAt: DateTime.now(),
+    );
+
+    await _saveUserToRegistry(updated);
+    await _authBox.put("currentUser", updated.toJson());
+    currentUser.value = updated;
+    isGuest.value = false;
+
+    // Sync all existing guest playlists and favorites to this Google account
+    await syncWithCloud(showNotice: false);
+
+    showCustomSnackBar(
+      "Guest data successfully linked to $cleanEmail ($generatedUsername)",
+      title: "Account Upgraded to Cloud!",
+      duration: const Duration(seconds: 4),
+    );
+  }
     final userId = "google_${cleanEmail.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}";
 
     final updated = currentUser.value!.copyWith(

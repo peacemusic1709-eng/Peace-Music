@@ -16,6 +16,8 @@ import 'widgets/scroll_to_hide.dart';
 import 'widgets/sliding_up_panel.dart';
 import 'widgets/snackbar.dart';
 import 'widgets/up_next_queue.dart';
+import '../services/peace_auth_service.dart';
+import 'widgets/peace_auth_dialogs.dart';
 
 class Home extends StatelessWidget {
   const Home({super.key});
@@ -28,6 +30,15 @@ class Home extends StatelessWidget {
     final homeScreenController = Get.find<HomeScreenController>();
     final size = MediaQuery.of(context).size;
     final isWideScreen = size.width > 800;
+
+    // Show 1-time onboarding sheet if user is not logged in yet
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final auth = Get.find<PeaceAuthService>();
+      if (!auth.isLoggedIn.value && !auth.hasShownLaunchOnboarding) {
+        auth.hasShownLaunchOnboarding = true;
+        PeaceOnboardingBottomSheet.show(context);
+      }
+    });
     if (!playerController.initFlagForPlayer &&
         settingsScreenController.isBottomNavBarEnabled.isFalse) {
       if (isWideScreen) {
