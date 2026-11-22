@@ -8,11 +8,13 @@ allprojects {
 rootProject.buildDir = '../build'
 
 subprojects {
-    project.ext.flutter = [
-        compileSdkVersion: 34,
-        targetSdkVersion: 34,
-        minSdkVersion: 21
-    ]
+    if (project.name != 'app') {
+        project.ext.flutter = [
+            compileSdkVersion: 34,
+            targetSdkVersion: 34,
+            minSdkVersion: 21
+        ]
+    }
     afterEvaluate { project ->
         if (project.hasProperty('android')) {
             project.android {
@@ -20,13 +22,15 @@ subprojects {
                     namespace project.group
                 }
             }
-            try {
-                project.android.ext.flutter = [
-                    compileSdkVersion: 34,
-                    targetSdkVersion: 34,
-                    minSdkVersion: 21
-                ]
-            } catch (Exception ignored) {}
+            if (project.name != 'app') {
+                try {
+                    project.android.ext.flutter = [
+                        compileSdkVersion: 34,
+                        targetSdkVersion: 34,
+                        minSdkVersion: 21
+                    ]
+                } catch (Exception ignored) {}
+            }
         }
 
         if (project.plugins.hasPlugin("com.android.application") ||
