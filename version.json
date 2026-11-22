@@ -1,7 +1,7 @@
 {
-  "versionCode": 12,
-  "versionName": "1.1.1",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.1.1/PeaceMusic.apk",
-  "changelog": "Sign Up direct create (no OTP), Fast Google One-Tap account chooser, Persistent Guest Profile on device across logouts, Modern Spotify/Apple Settings Profile Card & Spam-proof email headers",
+  "versionCode": 13,
+  "versionName": "1.1.2",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.1.2/PeaceMusic.apk",
+  "changelog": "Official Peace Music Sender Name, Direct Sign Up without OTP, Fast Google One-Tap, Persistent Local Guest across Logouts & Modern Dark Theme Profile Card",
   "updatedAt": "2026-11-22"
 }
