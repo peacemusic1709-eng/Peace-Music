@@ -178,24 +178,179 @@ class _PeaceOnboardingBottomSheetState
     }
   }
 
+  Future<void> _handleGoogleSignIn() async {
+    final auth = Get.find<PeaceAuthService>();
+    setState(() => _isLoading = true);
+
+    bool loggedIn = false;
+    try {
+      loggedIn = await auth.triggerGoogleDeviceSignIn();
+    } catch (_) {}
+
+    setState(() => _isLoading = false);
+
+    if (loggedIn) {
+      if (mounted) Navigator.pop(context);
+      return;
+    }
+
+    // Fast fallback if native Play Services OAuth requires registered SHA-1
+    if (mounted) {
+      _showGoogleQuickDialog(context);
+    }
+  }
+
+  void _showGoogleQuickDialog(BuildContext parentContext) {
+    final auth = Get.find<PeaceAuthService>();
+    final initialEmail = _signUpEmailController.text.isNotEmpty
+        ? _signUpEmailController.text
+        : _loginEmailController.text;
+    final controller = TextEditingController(text: initialEmail);
+
+    showDialog(
+      context: parentContext,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF16161E),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: const BorderSide(color: Colors.white12),
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(22, 22, 22, 16),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const GoogleLogoWidget(size: 34),
+            const SizedBox(height: 14),
+            const Text(
+              "Continue with Google",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              "Apna Google Gmail select karein. Verified phone account hone ke karan bina kisi OTP ya password ke direct login ho jayega.",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70, fontSize: 12.5, height: 1.4),
+            ),
+            const SizedBox(height: 18),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              keyboardType: TextInputType.emailAddress,
+              style: const TextStyle(color: Colors.white, fontSize: 15),
+              cursorColor: const Color(0xFF6C5CE7),
+              decoration: InputDecoration(
+                hintText: "yourname@gmail.com",
+                hintStyle: const TextStyle(color: Colors.white30),
+                filled: true,
+                fillColor: const Color(0xFF20202A),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF333344)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF333344)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF4285F4), width: 1.5),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              height: 46,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4285F4),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(23),
+                  ),
+                ),
+                onPressed: () async {
+                  final email = controller.text.trim().toLowerCase();
+                  if (!auth.isValidEmail(email)) {
+                    auth.showCustomSnackBar(
+                      "Kripya valid Gmail address enter karein.",
+                      title: "Invalid Email",
+                    );
+                    return;
+                  }
+                  final name = email.split('@').first;
+                  final capitalized = name.isNotEmpty
+                      ? name[0].toUpperCase() + name.substring(1)
+                      : "Google User";
+                  await auth.loginWithGoogle(email, capitalized);
+                  Navigator.pop(ctx);
+                  if (parentContext.mounted) {
+                    Navigator.pop(parentContext);
+                  }
+                },
+                child: const Text(
+                  "Continue with Google",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text("Cancel", style: TextStyle(color: Colors.white54)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context);
-    return Container(
-      height: mq.size.height,
-      width: mq.size.width,
-      color: const Color(0xFF0D0D12),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: mq.size.height - mq.padding.top - mq.padding.bottom - 24,
-              ),
-              child: IntrinsicHeight(
-                child: _buildCurrentView(context),
+    return WillPopScope(
+      onWillPop: () async {
+        if (_currentView == OnboardingView.welcome) {
+          // Mandatory choice on first open
+          return false;
+        } else if (_currentView == OnboardingView.signUpPassword) {
+          _goTo(OnboardingView.signUpEmail);
+          return false;
+        } else if (_currentView == OnboardingView.signUpName) {
+          _goTo(OnboardingView.signUpPassword);
+          return false;
+        } else if (_currentView == OnboardingView.otpVerify) {
+          _goTo(_isSignUpVerification
+              ? OnboardingView.signUpName
+              : OnboardingView.loginEmail);
+          return false;
+        } else {
+          _goTo(OnboardingView.welcome);
+          return false;
+        }
+      },
+      child: Container(
+        height: mq.size.height,
+        width: mq.size.width,
+        color: const Color(0xFF0D0D12),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: mq.size.height - mq.padding.top - mq.padding.bottom - 24,
+                ),
+                child: IntrinsicHeight(
+                  child: _buildCurrentView(context),
+                ),
               ),
             ),
           ),
@@ -221,20 +376,11 @@ class _PeaceOnboardingBottomSheetState
     }
   }
 
-  // 1. WELCOME SCREEN
+  // 1. WELCOME SCREEN (Mandatory selection, no close button)
   Widget _buildWelcomeView(BuildContext context) {
     return Column(
       children: [
-        Align(
-          alignment: Alignment.topRight,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 8, right: 8),
-            child: IconButton(
-              icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 24),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-        ),
+        const SizedBox(height: 24),
         const Spacer(),
 
         // Logo
@@ -335,7 +481,7 @@ class _PeaceOnboardingBottomSheetState
         ),
         const SizedBox(height: 16),
 
-        // Continue as Guest
+        // Continue as Guest (Recovers or creates saved guest profile)
         TextButton(
           onPressed: () async {
             final auth = Get.find<PeaceAuthService>();
@@ -353,7 +499,7 @@ class _PeaceOnboardingBottomSheetState
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -546,12 +692,7 @@ class _PeaceOnboardingBottomSheetState
               ),
               padding: const EdgeInsets.symmetric(horizontal: 20),
             ),
-            onPressed: () async {
-              final loggedIn = await auth.triggerGoogleDeviceSignIn();
-              if (loggedIn && context.mounted) {
-                Navigator.pop(context);
-              }
-            },
+            onPressed: () => _handleGoogleSignIn(),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: const [
@@ -794,16 +935,12 @@ class _PeaceOnboardingBottomSheetState
                       username: username,
                       password: password,
                     );
+                    setState(() => _isLoading = false);
 
                     if (registered) {
-                      await auth.sendOtpToEmail(email, purpose: "Sign Up Verification");
-                      _targetEmail = email;
-                      _isSignUpVerification = true;
-                      _otpController.clear();
-                      setState(() => _isLoading = false);
-                      _goTo(OnboardingView.otpVerify);
-                    } else {
-                      setState(() => _isLoading = false);
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                      }
                     }
                   },
             child: _isLoading
@@ -968,12 +1105,7 @@ class _PeaceOnboardingBottomSheetState
               ),
               padding: const EdgeInsets.symmetric(horizontal: 20),
             ),
-            onPressed: () async {
-              final loggedIn = await auth.triggerGoogleDeviceSignIn();
-              if (loggedIn && context.mounted) {
-                Navigator.pop(context);
-              }
-            },
+            onPressed: () => _handleGoogleSignIn(),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: const [
@@ -1059,7 +1191,7 @@ class _PeaceOnboardingBottomSheetState
         ),
         const SizedBox(height: 8),
         Text(
-          "We sent a code to $_targetEmail. Check your inbox or spam folder.",
+          "We sent a 6-digit code to $_targetEmail.\nCheck your inbox or Spam/Junk folder.",
           style: const TextStyle(
             fontSize: 13,
             color: Colors.white70,

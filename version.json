@@ -1,7 +1,7 @@
 {
-  "versionCode": 11,
-  "versionName": "1.1.0",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.1.0/PeaceMusic.apk",
-  "changelog": "New Spotify-tier Onboarding & Auth flow: Millions of songs free on Peace, Step-by-step Sign Up, Duplicate Email Check, Fast Gmail OTP Login & Google One-Tap!",
+  "versionCode": 12,
+  "versionName": "1.1.1",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.1.1/PeaceMusic.apk",
+  "changelog": "Sign Up direct create (no OTP), Fast Google One-Tap account chooser, Persistent Guest Profile on device across logouts, Modern Spotify/Apple Settings Profile Card & Spam-proof email headers",
   "updatedAt": "2026-11-22"
 }

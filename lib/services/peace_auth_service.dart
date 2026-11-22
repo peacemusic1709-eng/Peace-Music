@@ -105,8 +105,8 @@ class PeaceAuthService extends GetxService {
           webhookUrl.toString().trim(),
           data: {
             "to": cleanEmail,
-            "subject": "Peace Music $purpose Code: $otp",
-            "body": "Hello,\n\nAapka Peace Music OTP code hai: $otp\nYeh code 10 minute tak valid hai.\n\nEnjoy Peace Music!\n- Made by Harsh",
+            "subject": "Your Peace Music verification code is $otp",
+            "body": "Your Peace Music verification code is: $otp\n\nValid for 10 minutes.\n\nPeace Music • Lossless Audio Streaming • Made by Harsh",
             "otp": otp,
           },
           options: Options(
@@ -365,7 +365,27 @@ class PeaceAuthService extends GetxService {
     }
   }
 
-  Future<void> loginAsGuest(String fullName) async {
+  Future<void> loginAsGuest([String fullName = "Guest User"]) async {
+    // Check if an existing persistent guest profile already exists on this phone
+    if (_authBox.containsKey("savedGuestProfile")) {
+      try {
+        final raw = _authBox.get("savedGuestProfile");
+        if (raw is Map) {
+          final existing = PeaceUser.fromJson(Map<String, dynamic>.from(raw));
+          await _authBox.put("currentUser", existing.toJson());
+          currentUser.value = existing;
+          isLoggedIn.value = true;
+          isGuest.value = true;
+          showCustomSnackBar(
+            "Welcome back, ${existing.name}!",
+            title: "Guest Session Restored",
+            duration: const Duration(seconds: 3),
+          );
+          return;
+        }
+      } catch (_) {}
+    }
+
     final cleanName = fullName.trim().isEmpty ? "Guest User" : fullName.trim();
     final guestId = "guest_${DateTime.now().millisecondsSinceEpoch}";
     final guestUsername = "@guest_${100 + Random().nextInt(900)}";
@@ -384,6 +404,8 @@ class PeaceAuthService extends GetxService {
       downloadedSongIds: currentDownloads,
     );
 
+    // Save permanently on the device so logouts don't wipe it
+    await _authBox.put("savedGuestProfile", user.toJson());
     await _authBox.put("currentUser", user.toJson());
     currentUser.value = user;
     isLoggedIn.value = true;
@@ -391,7 +413,7 @@ class PeaceAuthService extends GetxService {
 
     showCustomSnackBar(
       "Welcome, $cleanName! ($guestUsername)",
-      title: "Guest Account Created",
+      title: "Guest Mode Ready",
       duration: const Duration(seconds: 3),
     );
   }

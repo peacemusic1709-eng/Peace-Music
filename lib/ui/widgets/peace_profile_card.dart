@@ -15,130 +15,12 @@ class PeaceProfileCard extends StatelessWidget {
       final isSyncing = authService.isSyncing.value;
 
       if (user == null || !authService.isLoggedIn.value) {
-        // Not logged in card
+        // Not logged in card - Modern Dark Minimalist
         return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(18),
+          margin: const EdgeInsets.only(bottom: 20),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                const Color(0xFFE040FB).withOpacity(0.18),
-                const Color(0xFF2196F3).withOpacity(0.12),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.1),
-              width: 1,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 46,
-                    height: 46,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.08),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.account_circle_outlined,
-                      color: Colors.white,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          "Welcome to Peace Music",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          "Sign in to sync your playlists & offline songs across phones",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white60,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFE040FB),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: () {
-                        PeaceOnboardingBottomSheet.show(context);
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.login_rounded, color: Colors.white, size: 20),
-                          SizedBox(width: 6),
-                          Text("Log In / Sign Up", style: TextStyle(fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: const BorderSide(color: Colors.white24),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (ctx) => const PeaceGuestDialog(),
-                        );
-                      },
-                      child: const Text("Guest Mode"),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      }
-
-      // Logged in as Guest
-      if (user.isGuest) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: const Color(0xFF181818),
+            color: const Color(0xFF14141B),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: Colors.white.withOpacity(0.08),
@@ -150,138 +32,109 @@ class PeaceProfileCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: const Color(0xFFE040FB).withOpacity(0.2),
-                    child: Text(
-                      user.name.isNotEmpty ? user.name[0].toUpperCase() : "G",
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFFE040FB),
-                      ),
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF6C5CE7).withOpacity(0.15),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF6C5CE7).withOpacity(0.3)),
+                    ),
+                    child: const Icon(
+                      Icons.person_outline_rounded,
+                      color: Color(0xFFA29BFE),
+                      size: 26,
                     ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                user.name,
-                                style: const TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.orangeAccent.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Text(
-                                "GUEST",
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.orangeAccent,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 3),
+                      children: const [
                         Text(
-                          "${user.username.isNotEmpty ? '${user.username} • ' : ''}Guest Profile (Local)",
-                          style: const TextStyle(
+                          "Welcome to Peace Music",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                        SizedBox(height: 3),
+                        Text(
+                          "Sign in to sync your playlists & favorite songs",
+                          style: TextStyle(
                             fontSize: 12,
-                            color: Colors.white60,
+                            color: Color(0xFF8F90A6),
+                            height: 1.3,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.logout_rounded, color: Colors.white54, size: 20),
-                    tooltip: "Clear Guest Data",
-                    onPressed: () {
-                      _showLogoutConfirmDialog(context, isGuest: true);
-                    },
-                  ),
                 ],
               ),
-              const SizedBox(height: 14),
-              // Upgrade banner to link with Google
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFFE040FB).withOpacity(0.2),
-                      const Color(0xFF2196F3).withOpacity(0.15),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFE040FB).withOpacity(0.3)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.cloud_sync_rounded, color: Color(0xFFE040FB), size: 20),
-                    const SizedBox(width: 10),
-                    const Expanded(
-                      child: Text(
-                        "Multi-device cloud backup ke liye Gmail link karein",
-                        style: TextStyle(fontSize: 12, color: Colors.white),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 44,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6C5CE7),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(22),
+                          ),
+                        ),
+                        onPressed: () {
+                          PeaceOnboardingBottomSheet.show(context);
+                        },
+                        child: const Text(
+                          "Log In / Sign Up",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
                       ),
                     ),
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black87,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  const SizedBox(width: 10),
+                  SizedBox(
+                    height: 44,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white70,
+                        side: BorderSide(color: Colors.white.withOpacity(0.18)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(22),
+                        ),
                       ),
-                      onPressed: () async {
-                        final auth = Get.find<PeaceAuthService>();
-                        final success = await auth.triggerGoogleDeviceSignIn();
-                        if (!success && auth.currentUser.value?.isGuest == true) {
-                          showDialog(
-                            context: context,
-                            builder: (ctx) => const GoogleLoginDialog(),
-                          );
-                        }
+                      onPressed: () {
+                        authService.loginAsGuest("Guest User");
                       },
                       child: const Text(
-                        "Link Gmail",
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                        "Guest Mode",
+                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),
         );
       }
 
-      // Logged in with Google Account
+      // Logged In (Guest or Registered User)
+      final isGuest = user.isGuest;
+      final initial = user.name.isNotEmpty ? user.name[0].toUpperCase() : "P";
+
       return Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(18),
+        margin: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF181818),
+          color: const Color(0xFF14141B),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: Colors.white.withOpacity(0.08),
@@ -289,22 +142,43 @@ class PeaceProfileCard extends StatelessWidget {
           ),
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: const Color(0xFF2196F3).withOpacity(0.2),
-                  child: Text(
-                    user.name.isNotEmpty ? user.name[0].toUpperCase() : "U",
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2196F3),
+                // Modern Avatar
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF6C5CE7), Color(0xFF8E44AD)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF6C5CE7).withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      initial,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 14),
+
+                // Name and Handle/Email
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -316,66 +190,116 @@ class PeaceProfileCard extends StatelessWidget {
                               user.name,
                               style: const TextStyle(
                                 fontSize: 17,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w800,
                                 color: Colors.white,
+                                letterSpacing: -0.2,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Colors.greenAccent.withOpacity(0.15),
+                              color: isGuest
+                                  ? Colors.orange.withOpacity(0.15)
+                                  : const Color(0xFF6C5CE7).withOpacity(0.18),
                               borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isGuest
+                                    ? Colors.orange.withOpacity(0.3)
+                                    : const Color(0xFF6C5CE7).withOpacity(0.4),
+                                width: 0.8,
+                              ),
                             ),
-                            child: const Text(
-                              "SYNCED ☁️",
+                            child: Text(
+                              isGuest ? "GUEST" : "ACTIVE",
                               style: TextStyle(
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.greenAccent,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w700,
+                                color: isGuest ? Colors.orangeAccent : const Color(0xFFA29BFE),
+                                letterSpacing: 0.5,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 3),
                       Text(
-                        "${user.username.isNotEmpty ? '${user.username} • ' : ''}${user.email}",
+                        isGuest
+                            ? "Guest Session (Saved on device)"
+                            : (user.email.isNotEmpty ? user.email : user.username),
                         style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.white70,
+                          fontSize: 12.5,
+                          color: Color(0xFF8F90A6),
+                          fontWeight: FontWeight.w500,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: isSyncing
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Icon(Icons.sync_rounded, color: Colors.white70),
-                  tooltip: "Sync with Cloud",
-                  onPressed: isSyncing
-                      ? null
-                      : () {
-                          authService.syncWithCloud();
-                        },
-                ),
+
+                // Action Icons (Sync & Logout)
+                if (!isGuest)
+                  IconButton(
+                    icon: isSyncing
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFA29BFE)),
+                          )
+                        : const Icon(Icons.sync_rounded, color: Colors.white70, size: 22),
+                    tooltip: "Sync with Cloud",
+                    onPressed: isSyncing ? null : () => authService.syncWithCloud(),
+                  ),
                 IconButton(
                   icon: const Icon(Icons.logout_rounded, color: Colors.white38, size: 20),
                   tooltip: "Logout",
-                  onPressed: () {
-                    _showLogoutConfirmDialog(context, isGuest: false);
-                  },
+                  onPressed: () => _showLogoutConfirmDialog(context, isGuest: isGuest),
                 ),
               ],
             ),
+
+            if (isGuest) ...[
+              const SizedBox(height: 14),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1C1C26),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withOpacity(0.06)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.cloud_outlined, color: Color(0xFFA29BFE), size: 18),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Text(
+                        "Cloud backup aur multi-phone sync ke liye login karein",
+                        style: TextStyle(fontSize: 11.5, color: Colors.white70),
+                      ),
+                    ),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        backgroundColor: const Color(0xFF6C5CE7),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () => PeaceOnboardingBottomSheet.show(context),
+                      child: const Text(
+                        "Connect",
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       );
@@ -386,14 +310,20 @@ class PeaceProfileCard extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: Text(isGuest ? "Clear Guest Session?" : "Log Out?"),
+        backgroundColor: const Color(0xFF16161E),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Colors.white12),
+        ),
+        title: Text(
+          isGuest ? "Log out from Guest?" : "Log Out?",
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+        ),
         content: Text(
           isGuest
-              ? "Aapka guest account remove ho jayega. Kya aap continue karna chahte hain?"
+              ? "Aapka guest session logout ho jayega. Lekin aapka data phone par safe rahega aur aage guest select karne par wapas aa jayega."
               : "Aap account se logout ho jayenge. Aapke playlists cloud me safe rahenge.",
-          style: const TextStyle(fontSize: 13, color: Colors.white70),
+          style: const TextStyle(fontSize: 13, color: Colors.white70, height: 1.4),
         ),
         actions: [
           TextButton(
@@ -402,18 +332,15 @@ class PeaceProfileCard extends StatelessWidget {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
+              backgroundColor: const Color(0xFFE53935),
               foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             ),
             onPressed: () {
               Navigator.pop(ctx);
-              if (isGuest) {
-                Get.find<PeaceAuthService>().clearGuestData();
-              } else {
-                Get.find<PeaceAuthService>().logout();
-              }
+              Get.find<PeaceAuthService>().logout();
             },
-            child: Text(isGuest ? "Clear Data" : "Log Out"),
+            child: const Text("Log Out", style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
