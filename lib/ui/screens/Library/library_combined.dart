@@ -17,13 +17,20 @@ class CombinedLibrary extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 95,
+        toolbarHeight: 125,
         backgroundColor: Theme.of(context).canvasColor,
         elevation: 0,
         titleSpacing: 15,
-        title: const Padding(
-          padding: EdgeInsets.only(top: 25.0),
-          child: PeaceMusicHeader(padding: EdgeInsets.zero),
+        title: Padding(
+          padding: const EdgeInsets.only(top: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const PeaceMusicHeader(padding: EdgeInsets.zero),
+              Text('library'.tr, style: Theme.of(context).textTheme.titleLarge),
+            ],
+          ),
         ),
         actions: [
           Obx(() => (settingscrnController.isLinkedWithPiped.isTrue)
@@ -66,11 +73,6 @@ class CombinedLibrary extends StatelessWidget {
             Tab(text: "albums".tr),
             Tab(text: "artists".tr),
           ],
-        ),
-        title: Padding(
-          padding: const EdgeInsets.only(top: 60.0, left: 5),
-          child:
-              Text('library'.tr, style: Theme.of(context).textTheme.titleLarge),
         ),
       ),
       body: TabBarView(
