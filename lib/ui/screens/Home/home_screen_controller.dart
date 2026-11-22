@@ -70,7 +70,7 @@ class HomeScreenController extends GetxController {
                 final parsed = item["type"] == "Album Content"
                     ? AlbumContent.fromJson(item)
                     : PlaylistContent.fromJson(item);
-                if (!dynamicEndlessContent.any((existing) => existing.title == parsed.title)) {
+                if (!dynamicEndlessContent.any((dynamic existing) => existing.title == parsed.title)) {
                   newSections.add(parsed);
                 }
               }
@@ -92,8 +92,8 @@ class HomeScreenController extends GetxController {
                 final parsed = item["type"] == "Album Content"
                     ? AlbumContent.fromJson(item)
                     : PlaylistContent.fromJson(item);
-                if (!dynamicEndlessContent.any((existing) => existing.title == parsed.title) &&
-                    !middleContent.any((existing) => existing.title == parsed.title)) {
+                if (!dynamicEndlessContent.any((dynamic existing) => existing.title == parsed.title) &&
+                    !middleContent.any((dynamic existing) => existing.title == parsed.title)) {
                   newSections.add(parsed);
                 }
               }
