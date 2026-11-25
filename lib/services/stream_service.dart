@@ -117,7 +117,8 @@ class StreamProvider {
       dynamic tokenData = tokenRes.data;
       if (tokenData is String) tokenData = jsonDecode(tokenData);
       if (tokenData is Map && (tokenData["auth_url"]?.toString() ?? "").isNotEmpty) {
-        return tokenData["auth_url"].toString();
+        final rawUrl = tokenData["auth_url"].toString().split('?').first;
+        return rawUrl.replaceFirst('https://web.saavncdn.com/', 'https://aac.saavncdn.com/');
       }
     } catch (_) {}
     return null;

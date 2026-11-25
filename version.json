@@ -1,7 +1,7 @@
 {
-  "versionCode": 41,
-  "versionName": "1.4.0",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.4.0/PeaceMusic.apk",
-  "changelog": "Bypass old cached YouTube 403 URLs and clean song title for 100% JioSaavn 320kbps match",
+  "versionCode": 42,
+  "versionName": "1.4.1",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.4.1/PeaceMusic.apk",
+  "changelog": "Fixed JioSaavn CDN 403 by switching web.saavncdn.com to unblocked aac.saavncdn.com (206 OK)",
   "updatedAt": "2026-11-25"
 }

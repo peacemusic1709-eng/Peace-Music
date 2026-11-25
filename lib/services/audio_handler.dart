@@ -851,6 +851,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         if (streamInfoJson.runtimeType.toString().contains("Map") &&
             cachedUrl.isNotEmpty &&
             !cachedUrl.contains("googlevideo.com") &&
+            !cachedUrl.contains("web.saavncdn.com") &&
             !isExpired(url: cachedUrl)) {
           printINFO("Got cached Url ($songId)");
           streamInfo = HMStreamingData.fromJson(streamInfoJson);
