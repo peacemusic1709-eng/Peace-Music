@@ -789,6 +789,15 @@ class PeaceAuthService extends GetxService {
           : await Hive.openBox("searchQuery");
       final searchHistory = queryBox.values.map((e) => e.toString()).toList();
 
+      // Never overwrite existing VPS cloud backup with completely empty local boxes
+      if (favoritesList.isEmpty &&
+          playlistsList.isEmpty &&
+          recentsList.isEmpty &&
+          downloadedSongs.isEmpty &&
+          searchHistory.isEmpty) {
+        return;
+      }
+
       final cloudPayload = {
         'userId': user.userId,
         'email': user.email,

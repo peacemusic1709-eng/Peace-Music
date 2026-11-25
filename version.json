@@ -1,7 +1,7 @@
 {
-  "versionCode": 35,
-  "versionName": "1.3.4",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.3.4/PeaceMusic.apk",
-  "changelog": "Fixed videoId key restore for Recently Played, Favorites, and Downloaded Songs + prevented housekeeping from deleting cloud songs",
+  "versionCode": 36,
+  "versionName": "1.3.5",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.3.5/PeaceMusic.apk",
+  "changelog": "Prevent empty local boxes from overwriting VPS cloud backup on logout/sync",
   "updatedAt": "2026-11-25"
 }
