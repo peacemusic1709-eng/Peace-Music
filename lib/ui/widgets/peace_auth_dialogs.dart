@@ -197,35 +197,24 @@ class _PeaceOnboardingBottomSheetState
     _isFetchingArtistImages = true;
     try {
       final musicService = Get.find<MusicServices>();
-      for (final artist in _popularArtists) {
-        if (!mounted) return;
-        final name = artist["name"]!;
-        if (_artistImages.containsKey(name)) continue;
-        try {
-          String thumb = "";
-          final res = await musicService.search(name, filter: "artists");
-          final artists = res["Artists"];
-          if (artists is List && artists.isNotEmpty) {
-            final first = artists.first;
-            if (first is Artist && first.thumbnailUrl.isNotEmpty) {
-              thumb = first.thumbnailUrl;
-            }
-          }
-          if (thumb.isEmpty) {
+      await Future.wait(
+        _popularArtists.map((artist) async {
+          final name = artist["name"]!;
+          if (_artistImages.containsKey(name)) return;
+          try {
             final songRes = await musicService.search(name, filter: "songs");
             final songs = songRes["Songs"];
             if (songs is List && songs.isNotEmpty) {
               final uri = (songs.first as dynamic).artUri?.toString() ?? "";
-              if (uri.isNotEmpty) thumb = uri;
+              if (uri.isNotEmpty && mounted) {
+                setState(() {
+                  _artistImages[name] = uri;
+                });
+              }
             }
-          }
-          if (thumb.isNotEmpty && mounted) {
-            setState(() {
-              _artistImages[name] = thumb;
-            });
-          }
-        } catch (_) {}
-      }
+          } catch (_) {}
+        }),
+      );
     } catch (_) {}
   }
 
@@ -266,6 +255,7 @@ class _PeaceOnboardingBottomSheetState
   void initState() {
     super.initState();
     _initVideoBackground();
+    _fetchArtistImages();
   }
 
   void _initVideoBackground() {
@@ -410,7 +400,7 @@ class _PeaceOnboardingBottomSheetState
       child: Container(
         height: mq.size.height,
         width: mq.size.width,
-        color: const Color(0xFF090A10),
+        color: const Color(0xFF0D0D0D),
         child: Stack(
           children: [
             // Video Background (Visible on Welcome page)
@@ -442,7 +432,7 @@ class _PeaceOnboardingBottomSheetState
                       colors: [
                         Colors.black.withOpacity(0.40),
                         Colors.black.withOpacity(0.60),
-                        const Color(0xFF090A10).withOpacity(0.92),
+                        const Color(0xFF0D0D0D).withOpacity(0.92),
                       ],
                       stops: const [0.0, 0.45, 1.0],
                     ),
@@ -719,7 +709,7 @@ class _PeaceOnboardingBottomSheetState
         gradient: LinearGradient(
           colors: isSelected
               ? const [Color(0xFF7C4DFF), Color(0xFF536DFE)]
-              : const [Color(0xFF1F2233), Color(0xFF13141F)],
+              : const [Color(0xFF1F2233), Color(0xFF161616)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -826,7 +816,7 @@ class _PeaceOnboardingBottomSheetState
           child: OutlinedButton(
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white,
-              backgroundColor: const Color(0xFF13141F),
+              backgroundColor: const Color(0xFF161616),
               side: const BorderSide(color: Color(0xFF2C2E42), width: 1.2),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(26),
@@ -945,7 +935,7 @@ class _PeaceOnboardingBottomSheetState
             hintText: "Enter your email",
             hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
             filled: true,
-            fillColor: const Color(0xFF13141F),
+            fillColor: const Color(0xFF161616),
             contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
@@ -1078,7 +1068,7 @@ class _PeaceOnboardingBottomSheetState
           child: OutlinedButton(
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white,
-              backgroundColor: const Color(0xFF13141F),
+              backgroundColor: const Color(0xFF161616),
               side: const BorderSide(color: Color(0xFF2C2E42), width: 1.2),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(26),
@@ -1181,7 +1171,7 @@ class _PeaceOnboardingBottomSheetState
             hintText: "Enter your password",
             hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
             filled: true,
-            fillColor: const Color(0xFF13141F),
+            fillColor: const Color(0xFF161616),
             contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             suffixIcon: IconButton(
               icon: Icon(
@@ -1312,7 +1302,7 @@ class _PeaceOnboardingBottomSheetState
             hintText: "Your name",
             hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
             filled: true,
-            fillColor: const Color(0xFF13141F),
+            fillColor: const Color(0xFF161616),
             contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
@@ -1588,7 +1578,7 @@ class _PeaceOnboardingBottomSheetState
             hintText: "Enter your name",
             hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
             filled: true,
-            fillColor: const Color(0xFF13141F),
+            fillColor: const Color(0xFF161616),
             contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
@@ -1766,7 +1756,7 @@ class _PeaceOnboardingBottomSheetState
         decoration: BoxDecoration(
           color: isSelected
               ? const Color(0xFF7C4DFF).withOpacity(0.20)
-              : const Color(0xFF13141F),
+              : const Color(0xFF161616),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? const Color(0xFF7C4DFF) : const Color(0xFF242638),
@@ -1868,7 +1858,7 @@ class _PeaceOnboardingBottomSheetState
             hintText: "Enter your email or username",
             hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
             filled: true,
-            fillColor: const Color(0xFF13141F),
+            fillColor: const Color(0xFF161616),
             contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
@@ -1905,7 +1895,7 @@ class _PeaceOnboardingBottomSheetState
             hintText: "Enter your password",
             hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
             filled: true,
-            fillColor: const Color(0xFF13141F),
+            fillColor: const Color(0xFF161616),
             contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             suffixIcon: IconButton(
               icon: Icon(
@@ -2018,7 +2008,7 @@ class _PeaceOnboardingBottomSheetState
           child: OutlinedButton(
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white,
-              backgroundColor: const Color(0xFF13141F),
+              backgroundColor: const Color(0xFF161616),
               side: const BorderSide(color: Color(0xFF2C2E42), width: 1.2),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(26),
@@ -2148,7 +2138,7 @@ class _PeaceOnboardingBottomSheetState
             hintText: "••••••",
             hintStyle: const TextStyle(color: Colors.white24, letterSpacing: 14),
             filled: true,
-            fillColor: const Color(0xFF13141F),
+            fillColor: const Color(0xFF161616),
             contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
