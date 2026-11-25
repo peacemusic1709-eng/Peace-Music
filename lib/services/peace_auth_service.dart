@@ -537,6 +537,29 @@ class PeaceAuthService extends GetxService {
   void onInit() {
     super.onInit();
     _loadUserFromStorage();
+    if (isLoggedIn.value && !isGuest.value && currentUser.value != null) {
+      fetchAndRestoreFromVps();
+    }
+  }
+
+  Future<void> fetchAndRestoreFromVps() async {
+    final user = currentUser.value;
+    if (user == null || user.isGuest) return;
+    try {
+      final res = await Dio().get(
+        "$vpsBaseUrl/sync",
+        queryParameters: {"userId": user.userId},
+        options: Options(
+          sendTimeout: const Duration(seconds: 6),
+          receiveTimeout: const Duration(seconds: 6),
+        ),
+      );
+      if (res.statusCode == 200 && res.data is Map && res.data["cloudData"] is Map) {
+        await _restoreCloudData(Map<String, dynamic>.from(res.data["cloudData"]));
+      }
+    } catch (e) {
+      debugPrint("Auto VPS fetch error: $e");
+    }
   }
 
   void _loadUserFromStorage() {
@@ -892,7 +915,7 @@ class PeaceAuthService extends GetxService {
           }
         }
       }
-      _refreshActiveControllers();
+      await _refreshActiveControllers();
     } catch (e) {
       debugPrint("Restore error: $e");
     }
@@ -1055,7 +1078,7 @@ class PeaceAuthService extends GetxService {
 
       selectedArtists.clear();
       await _authBox.delete("selectedArtists");
-      _refreshActiveControllers();
+      await _refreshActiveControllers();
     } catch (e) {
       debugPrint("Clear local user data error: $e");
     }
@@ -1068,7 +1091,7 @@ class PeaceAuthService extends GetxService {
     } catch (_) {}
   }
 
-  void _refreshActiveControllers() {
+  Future<void> _refreshActiveControllers() async {
     try {
       if (Get.isRegistered<SearchScreenController>()) {
         final sc = Get.find<SearchScreenController>();
@@ -1079,10 +1102,10 @@ class PeaceAuthService extends GetxService {
         }
       }
       if (Get.isRegistered<LibrarySongsController>()) {
-        Get.find<LibrarySongsController>().refresh();
+        await Get.find<LibrarySongsController>().init();
       }
       if (Get.isRegistered<LibraryPlaylistsController>()) {
-        Get.find<LibraryPlaylistsController>().refresh();
+        Get.find<LibraryPlaylistsController>().refreshLib();
       }
     } catch (_) {}
   }

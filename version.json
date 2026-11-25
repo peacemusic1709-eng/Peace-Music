@@ -1,7 +1,7 @@
 {
-  "versionCode": 33,
-  "versionName": "1.3.2",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.3.2/PeaceMusic.apk",
-  "changelog": "Cloud-restored downloads & recently played show dimmed layer with cloud icon; tap to auto-download & play",
+  "versionCode": 34,
+  "versionName": "1.3.3",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.3.3/PeaceMusic.apk",
+  "changelog": "Auto-fetch & reload VPS cloud library into UI controllers on login and app launch",
   "updatedAt": "2026-11-25"
 }
