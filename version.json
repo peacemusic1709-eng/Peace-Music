@@ -1,7 +1,7 @@
 {
-  "versionCode": 28,
-  "versionName": "1.2.7",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.2.7/PeaceMusic.apk",
-  "changelog": "Replaced purple accents with sleek red + iPhone-style glassy blur theme across onboarding pages",
-  "updatedAt": "2026-11-24"
+  "versionCode": 29,
+  "versionName": "1.2.8",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.2.8/PeaceMusic.apk",
+  "changelog": "Updated all app logos, splash icon, and launcher icons (keeping black background)",
+  "updatedAt": "2026-11-25"
 }
