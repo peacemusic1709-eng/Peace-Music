@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -30,11 +31,22 @@ class MiniPlayer extends StatelessWidget {
         child: AnimatedOpacity(
           opacity: playerController.playerPaneOpacity.value,
           duration: Duration.zero,
-          child: Container(
-            height: playerController.playerPanelMinHeight.value,
-            width: size.width,
-            color: Theme.of(context).bottomSheetTheme.backgroundColor,
-            child: Center(
+          child: ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+              child: Container(
+                height: playerController.playerPanelMinHeight.value,
+                width: size.width,
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.40),
+                  border: Border(
+                    top: BorderSide(
+                      color: Colors.white.withOpacity(0.12),
+                      width: 0.8,
+                    ),
+                  ),
+                ),
+                child: Center(
               child: Column(
                 children: [
                   !isWideScreen || bottomNavEnabled
@@ -502,6 +514,8 @@ class MiniPlayer extends StatelessWidget {
                 ],
               ),
             ),
+          ),
+        ),
           ),
         ),
       );

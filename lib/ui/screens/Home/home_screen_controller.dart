@@ -38,14 +38,23 @@ class HomeScreenController extends GetxController {
   onInit() {
     super.onInit();
     homeFeedScrollController.addListener(_onHomeFeedScroll);
-    loadContent();
+    loadContent().then((_) {
+      final auth = Get.isRegistered<PeaceAuthService>()
+          ? Get.find<PeaceAuthService>()
+          : null;
+      if (auth != null && auth.selectedArtists.isNotEmpty) {
+        refreshArtistFeed();
+      } else {
+        loadNextEndlessBatch();
+      }
+    });
     if (updateCheckFlag) _checkNewVersion();
   }
 
   void _onHomeFeedScroll() {
     if (!homeFeedScrollController.hasClients) return;
     if (homeFeedScrollController.position.pixels >=
-            homeFeedScrollController.position.maxScrollExtent - 400 &&
+            homeFeedScrollController.position.maxScrollExtent - 800 &&
         !isLoadingMore.value &&
         hasMoreEndless.value) {
       loadNextEndlessBatch();
@@ -56,6 +65,31 @@ class HomeScreenController extends GetxController {
     _endlessBatchIndex = 0;
     dynamicEndlessContent.clear();
     hasMoreEndless.value = true;
+
+    final auth = Get.isRegistered<PeaceAuthService>()
+        ? Get.find<PeaceAuthService>()
+        : null;
+    final artists = auth?.selectedArtists.toList() ?? <String>[];
+    if (artists.isNotEmpty) {
+      try {
+        final List<MediaItem> artistSongs = [];
+        for (final artist in artists.take(3)) {
+          final res = await _musicServices.search("$artist songs", filter: "songs");
+          final songs = res["Songs"];
+          if (songs is List) {
+            artistSongs.addAll(songs.whereType<MediaItem>().take(6));
+          }
+        }
+        if (artistSongs.isNotEmpty) {
+          artistSongs.shuffle();
+          quickPicks.value = QuickPicks(artistSongs, title: "For You • ${artists.take(3).join(', ')}");
+        }
+      } catch (e) {
+        debugPrint("refreshArtistFeed quickPicks error: $e");
+      }
+    }
+
+    await loadNextEndlessBatch();
     await loadNextEndlessBatch();
     await loadNextEndlessBatch();
   }

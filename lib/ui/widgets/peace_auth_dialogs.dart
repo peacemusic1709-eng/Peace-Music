@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 import '../../services/peace_auth_service.dart';
+import '../../services/music_service.dart';
+import '../../models/artist.dart';
 import '../screens/Home/home_screen_controller.dart';
 
 enum OnboardingView {
@@ -134,6 +136,35 @@ class _PeaceOnboardingBottomSheetState
   bool _isSignUpVerification = false;
   String _targetEmail = "";
   final List<String> _selectedArtists = [];
+  final Map<String, String> _artistImages = {};
+  bool _isFetchingArtistImages = false;
+
+  Future<void> _fetchArtistImages() async {
+    if (_isFetchingArtistImages) return;
+    _isFetchingArtistImages = true;
+    try {
+      final musicService = Get.find<MusicServices>();
+      for (final artist in _popularArtists) {
+        if (!mounted) return;
+        final name = artist["name"]!;
+        if (_artistImages.containsKey(name)) continue;
+        try {
+          final res = await musicService.search(name, filter: "artists");
+          final artists = res["Artists"];
+          if (artists is List && artists.isNotEmpty) {
+            final first = artists.first;
+            if (first is Artist && first.thumbnailUrl.isNotEmpty) {
+              if (mounted) {
+                setState(() {
+                  _artistImages[name] = first.thumbnailUrl;
+                });
+              }
+            }
+          }
+        } catch (_) {}
+      }
+    } catch (_) {}
+  }
 
   static const List<Map<String, String>> _popularArtists = [
     {"name": "Arijit Singh", "img": "https://yt3.googleusercontent.com/ytc/AIdro_k8h2c0f9X6q7Z5Y4W3V2U1T0S9R8Q7P6O5N4M3=s500-c-k-c0x00ffffff-no-rj"},
@@ -404,6 +435,7 @@ class _PeaceOnboardingBottomSheetState
   }
 
   Widget _buildSelectArtistsView(BuildContext context) {
+    _fetchArtistImages();
     final auth = Get.find<PeaceAuthService>();
     final bool canProceed = _selectedArtists.length >= 3;
 
@@ -469,7 +501,7 @@ class _PeaceOnboardingBottomSheetState
             itemBuilder: (context, index) {
               final artist = _popularArtists[index];
               final name = artist["name"]!;
-              final img = artist["img"] ?? "";
+              final img = _artistImages[name] ?? artist["img"] ?? "";
               final isSelected = _selectedArtists.contains(name);
               final initials = name.split(" ").take(2).map((e) => e.isNotEmpty ? e[0] : "").join().toUpperCase();
 
