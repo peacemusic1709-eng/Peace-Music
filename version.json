@@ -1,7 +1,7 @@
 {
-  "versionCode": 38,
-  "versionName": "1.3.7",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.3.7/PeaceMusic.apk",
-  "changelog": "Mandatory password setup after Google Sign-In, double-onboarding sheet glitch fix, and smooth AnimatedSwitcher transitions",
+  "versionCode": 39,
+  "versionName": "1.3.8",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.3.8/PeaceMusic.apk",
+  "changelog": "Fixed HTTP playback/403 errors with multi-client YouTube fallback (androidVr, ios, tv) + free Piped API fallback",
   "updatedAt": "2026-11-25"
 }

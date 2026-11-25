@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:harmonymusic/ui/screens/Settings/settings_screen_controller.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
@@ -21,60 +22,112 @@ class StreamProvider {
   StreamProvider(
       {required this.playable, this.audioFormats, this.statusMSG = ""});
 
+  static final List<YoutubeApiClient> _fallbackClients = [
+    YoutubeApiClient.androidVr,
+    YoutubeApiClient.ios,
+    YoutubeApiClient.tv,
+    YoutubeApiClient.androidMusic,
+    YoutubeApiClient.android,
+    YoutubeApiClient.visionos,
+  ];
+
+  static const List<String> _freePipedInstances = [
+    "https://pipedapi.kavin.rocks",
+    "https://pipedapi.adminforge.de",
+    "https://api.piped.private.coffee",
+  ];
+
   static Future<StreamProvider> fetch(String videoId) async {
     final yt = YoutubeExplode();
-    
+    Object? lastError;
+
     try {
-      final res = await yt.videos.streamsClient.getManifest(videoId, ytClients: [
-        YoutubeApiClient.visionos
-      ]);
-      final audio = res.audioOnly;
-      return StreamProvider(
-          playable: true,
-          statusMSG: "OK",
-          audioFormats: audio
-              .map((e) => Audio(
-                  itag: e.tag,
-                  audioCodec:
-                      e.audioCodec.contains('mp') ? Codec.mp4a : Codec.opus,
-                  bitrate: e.bitrate.bitsPerSecond,
-                  // duration: e.duration ?? 0,
-                  // loudnessDb: e.loudnessDb,
-                  url: e.url.toString(),
-                  size: e.size.totalBytes))
-              .toList());
-    } catch (e) {
+      for (final client in _fallbackClients) {
+        try {
+          final res = await yt.videos.streamsClient
+              .getManifest(videoId, ytClients: [client]);
+          final audio = res.audioOnly;
+          if (audio.isNotEmpty) {
+            return StreamProvider(
+              playable: true,
+              statusMSG: "OK",
+              audioFormats: audio
+                  .map((e) => Audio(
+                        itag: e.tag,
+                        audioCodec:
+                            e.audioCodec.contains('mp') ? Codec.mp4a : Codec.opus,
+                        bitrate: e.bitrate.bitsPerSecond,
+                        url: e.url.toString(),
+                        size: e.size.totalBytes,
+                      ))
+                  .toList(),
+            );
+          }
+        } catch (e) {
+          lastError = e;
+          if (e is VideoRequiresPurchaseException ||
+              e is VideoUnavailableException) {
+            break;
+          }
+        }
+      }
+
+      // Free public Piped API fallback if all direct YouTube clients fail
+      for (final instance in _freePipedInstances) {
+        try {
+          final resp = await Dio().get(
+            "$instance/streams/$videoId",
+            options: Options(
+              sendTimeout: const Duration(seconds: 6),
+              receiveTimeout: const Duration(seconds: 6),
+            ),
+          );
+          if (resp.statusCode == 200 &&
+              resp.data is Map &&
+              resp.data["audioStreams"] is List) {
+            final List streams = resp.data["audioStreams"];
+            final formats = streams
+                .whereType<Map>()
+                .where((s) => (s["url"]?.toString() ?? "").isNotEmpty)
+                .map((s) => Audio(
+                      itag: int.tryParse(s["itag"]?.toString() ?? "") ?? 251,
+                      audioCodec: (s["mimeType"]?.toString() ?? "").contains("mp4")
+                          ? Codec.mp4a
+                          : Codec.opus,
+                      bitrate: int.tryParse(s["bitrate"]?.toString() ?? "") ?? 128000,
+                      url: s["url"].toString(),
+                      size: int.tryParse(s["contentLength"]?.toString() ?? "") ?? 0,
+                    ))
+                .toList();
+            if (formats.isNotEmpty) {
+              return StreamProvider(
+                playable: true,
+                statusMSG: "OK",
+                audioFormats: formats,
+              );
+            }
+          }
+        } catch (_) {}
+      }
+
+      final e = lastError;
       if (e is SocketException) {
-        return StreamProvider(
-          playable: false,
-          statusMSG: "networkError",
-        );
+        return StreamProvider(playable: false, statusMSG: "networkError");
       } else if (e is VideoUnplayableException) {
-        return StreamProvider(
-          playable: false,
-          statusMSG: null ?? "Song is unplayable",
-        );
+        return StreamProvider(playable: false, statusMSG: "Song is unplayable");
       } else if (e is VideoRequiresPurchaseException) {
         return StreamProvider(
-          playable: false,
-          statusMSG: "Song requires purchase",
-        );
+            playable: false, statusMSG: "Song requires purchase");
       } else if (e is VideoUnavailableException) {
-        return StreamProvider(
-          playable: false,
-          statusMSG: "Song is unavailable",
-        );
+        return StreamProvider(playable: false, statusMSG: "Song is unavailable");
       } else if (e is YoutubeExplodeException) {
-        return StreamProvider(
-          playable: false,
-          statusMSG: e.message,
-        );
+        return StreamProvider(playable: false, statusMSG: e.message);
       } else {
         return StreamProvider(
-          playable: false,
-          statusMSG: "Unknown error occurred",
-        );
+            playable: false, statusMSG: "Unknown error occurred");
       }
+    } finally {
+      yt.close();
     }
   }
 
@@ -85,17 +138,26 @@ class StreamProvider {
     var yt = YoutubeExplode();
 
     try {
-      var manifest = await yt.videos.streamsClient.getManifest(songId);
-      
+      StreamManifest? manifest;
+      for (final client in _fallbackClients) {
+        try {
+          manifest = await yt.videos.streamsClient
+              .getManifest(songId, ytClients: [client]);
+          if (manifest.audioOnly.isNotEmpty) break;
+        } catch (_) {}
+      }
+      final resolvedManifest =
+          manifest ?? await yt.videos.streamsClient.getManifest(songId);
+
       var audioStreamInfo = downloadingFormat == "opus" ?
-          manifest.audioOnly.firstWhere(
+          resolvedManifest.audioOnly.firstWhere(
             (stream) => stream.tag == 251 || stream.tag == 250,   
-            orElse: () => manifest.audioOnly.withHighestBitrate(),
+            orElse: () => resolvedManifest.audioOnly.withHighestBitrate(),
           ) 
         : 
-          manifest.audioOnly.firstWhere(
+          resolvedManifest.audioOnly.firstWhere(
             (stream) => stream.tag == 140 || stream.tag == 139,   
-            orElse: () => manifest.audioOnly.withHighestBitrate(),
+            orElse: () => resolvedManifest.audioOnly.withHighestBitrate(),
           ) 
       ;
 
