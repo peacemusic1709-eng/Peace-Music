@@ -61,7 +61,7 @@ class _AnimatedDotsLoaderState extends State<_AnimatedDotsLoader>
               width: 10 * scale + 2,
               height: 10 * scale + 2,
               decoration: BoxDecoration(
-                color: Color.lerp(Colors.white38, const Color(0xFF7C4DFF), scale),
+                color: Color.lerp(Colors.white38, const Color(0xFFE53935), scale),
                 shape: BoxShape.circle,
               ),
             );
@@ -541,12 +541,12 @@ class _PeaceOnboardingBottomSheetState
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: canProceed
-                    ? const Color(0xFF7C4DFF).withOpacity(0.25)
+                    ? const Color(0xFFE53935).withOpacity(0.25)
                     : Colors.white.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: canProceed
-                      ? const Color(0xFF7C4DFF)
+                      ? const Color(0xFFE53935)
                       : Colors.white24,
                 ),
               ),
@@ -555,7 +555,7 @@ class _PeaceOnboardingBottomSheetState
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: canProceed ? const Color(0xFFB388FF) : Colors.white70,
+                  color: canProceed ? const Color(0xFFFF8A80) : Colors.white70,
                 ),
               ),
             ),
@@ -613,14 +613,14 @@ class _PeaceOnboardingBottomSheetState
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: isSelected
-                                  ? const Color(0xFF7C4DFF)
+                                  ? const Color(0xFFE53935)
                                   : Colors.white.withOpacity(0.16),
                               width: isSelected ? 2.5 : 1.0,
                             ),
                             boxShadow: isSelected
                                 ? [
                                     BoxShadow(
-                                      color: const Color(0xFF7C4DFF).withOpacity(0.45),
+                                      color: const Color(0xFFE53935).withOpacity(0.45),
                                       blurRadius: 14,
                                       spreadRadius: 1,
                                     ),
@@ -642,7 +642,7 @@ class _PeaceOnboardingBottomSheetState
                             width: 24,
                             height: 24,
                             decoration: const BoxDecoration(
-                              color: Color(0xFF7C4DFF),
+                              color: Color(0xFFE53935),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.check_rounded, color: Colors.white, size: 15),
@@ -673,7 +673,7 @@ class _PeaceOnboardingBottomSheetState
           height: 52,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: canProceed ? const Color(0xFF7C4DFF) : Colors.white12,
+              backgroundColor: canProceed ? const Color(0xFFE53935) : Colors.white12,
               foregroundColor: Colors.white,
               elevation: canProceed ? 6 : 0,
               shape: RoundedRectangleBorder(
@@ -708,7 +708,7 @@ class _PeaceOnboardingBottomSheetState
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isSelected
-              ? const [Color(0xFF7C4DFF), Color(0xFF536DFE)]
+              ? const [Color(0xFFE53935), Color(0xFFB71C1C)]
               : const [Color(0xFF1F2233), Color(0xFF161616)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -743,7 +743,7 @@ class _PeaceOnboardingBottomSheetState
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF7C4DFF).withOpacity(0.38),
+                  color: const Color(0xFFE53935).withOpacity(0.38),
                   blurRadius: 48,
                   spreadRadius: 4,
                 ),
@@ -788,10 +788,10 @@ class _PeaceOnboardingBottomSheetState
           height: 52,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF7C4DFF),
+              backgroundColor: const Color(0xFFE53935),
               foregroundColor: Colors.white,
               elevation: 6,
-              shadowColor: const Color(0xFF7C4DFF).withOpacity(0.4),
+              shadowColor: const Color(0xFFE53935).withOpacity(0.4),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(26),
               ),
@@ -930,7 +930,7 @@ class _PeaceOnboardingBottomSheetState
           autofocus: true,
           keyboardType: TextInputType.emailAddress,
           style: const TextStyle(color: Colors.white, fontSize: 16),
-          cursorColor: const Color(0xFF7C4DFF),
+          cursorColor: const Color(0xFFE53935),
           decoration: InputDecoration(
             hintText: "Enter your email",
             hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
@@ -947,7 +947,7 @@ class _PeaceOnboardingBottomSheetState
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.8),
+              borderSide: const BorderSide(color: Color(0xFFE53935), width: 1.8),
             ),
           ),
         ),
@@ -958,10 +958,10 @@ class _PeaceOnboardingBottomSheetState
           height: 52,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF7C4DFF),
+              backgroundColor: const Color(0xFFE53935),
               foregroundColor: Colors.white,
               elevation: 4,
-              shadowColor: const Color(0xFF7C4DFF).withOpacity(0.35),
+              shadowColor: const Color(0xFFE53935).withOpacity(0.35),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(26),
               ),
@@ -1010,7 +1010,7 @@ class _PeaceOnboardingBottomSheetState
                       ),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF7C4DFF),
+                          backgroundColor: const Color(0xFFE53935),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -1166,7 +1166,7 @@ class _PeaceOnboardingBottomSheetState
           autofocus: true,
           obscureText: _obscurePassword,
           style: const TextStyle(color: Colors.white, fontSize: 16),
-          cursorColor: const Color(0xFF7C4DFF),
+          cursorColor: const Color(0xFFE53935),
           decoration: InputDecoration(
             hintText: "Enter your password",
             hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
@@ -1190,7 +1190,7 @@ class _PeaceOnboardingBottomSheetState
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.8),
+              borderSide: const BorderSide(color: Color(0xFFE53935), width: 1.8),
             ),
           ),
         ),
@@ -1201,10 +1201,10 @@ class _PeaceOnboardingBottomSheetState
           height: 52,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF7C4DFF),
+              backgroundColor: const Color(0xFFE53935),
               foregroundColor: Colors.white,
               elevation: 4,
-              shadowColor: const Color(0xFF7C4DFF).withOpacity(0.35),
+              shadowColor: const Color(0xFFE53935).withOpacity(0.35),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(26),
               ),
@@ -1297,7 +1297,7 @@ class _PeaceOnboardingBottomSheetState
           controller: _signUpNameController,
           autofocus: true,
           style: const TextStyle(color: Colors.white, fontSize: 16),
-          cursorColor: const Color(0xFF7C4DFF),
+          cursorColor: const Color(0xFFE53935),
           decoration: InputDecoration(
             hintText: "Your name",
             hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
@@ -1314,7 +1314,7 @@ class _PeaceOnboardingBottomSheetState
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.8),
+              borderSide: const BorderSide(color: Color(0xFFE53935), width: 1.8),
             ),
           ),
         ),
@@ -1335,10 +1335,10 @@ class _PeaceOnboardingBottomSheetState
           height: 52,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF7C4DFF),
+              backgroundColor: const Color(0xFFE53935),
               foregroundColor: Colors.white,
               elevation: 4,
-              shadowColor: const Color(0xFF7C4DFF).withOpacity(0.35),
+              shadowColor: const Color(0xFFE53935).withOpacity(0.35),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(26),
               ),
@@ -1457,10 +1457,10 @@ class _PeaceOnboardingBottomSheetState
           height: 52,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF7C4DFF),
+              backgroundColor: const Color(0xFFE53935),
               foregroundColor: Colors.white,
               elevation: 4,
-              shadowColor: const Color(0xFF7C4DFF).withOpacity(0.35),
+              shadowColor: const Color(0xFFE53935).withOpacity(0.35),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(26),
               ),
@@ -1573,7 +1573,7 @@ class _PeaceOnboardingBottomSheetState
           controller: _guestNameController,
           autofocus: true,
           style: const TextStyle(color: Colors.white, fontSize: 16),
-          cursorColor: const Color(0xFF7C4DFF),
+          cursorColor: const Color(0xFFE53935),
           decoration: InputDecoration(
             hintText: "Enter your name",
             hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
@@ -1590,7 +1590,7 @@ class _PeaceOnboardingBottomSheetState
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.8),
+              borderSide: const BorderSide(color: Color(0xFFE53935), width: 1.8),
             ),
           ),
         ),
@@ -1601,10 +1601,10 @@ class _PeaceOnboardingBottomSheetState
           height: 52,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF7C4DFF),
+              backgroundColor: const Color(0xFFE53935),
               foregroundColor: Colors.white,
               elevation: 4,
-              shadowColor: const Color(0xFF7C4DFF).withOpacity(0.35),
+              shadowColor: const Color(0xFFE53935).withOpacity(0.35),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(26),
               ),
@@ -1714,10 +1714,10 @@ class _PeaceOnboardingBottomSheetState
           height: 52,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF7C4DFF),
+              backgroundColor: const Color(0xFFE53935),
               foregroundColor: Colors.white,
               elevation: 4,
-              shadowColor: const Color(0xFF7C4DFF).withOpacity(0.35),
+              shadowColor: const Color(0xFFE53935).withOpacity(0.35),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(26),
               ),
@@ -1755,11 +1755,11 @@ class _PeaceOnboardingBottomSheetState
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFF7C4DFF).withOpacity(0.20)
+              ? const Color(0xFFE53935).withOpacity(0.20)
               : const Color(0xFF161616),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? const Color(0xFF7C4DFF) : const Color(0xFF242638),
+            color: isSelected ? const Color(0xFFE53935) : const Color(0xFF242638),
             width: isSelected ? 1.8 : 1.0,
           ),
         ),
@@ -1787,7 +1787,7 @@ class _PeaceOnboardingBottomSheetState
             ),
             if (isSelected)
               const Icon(Icons.check_circle_rounded,
-                  color: Color(0xFF7C4DFF), size: 22),
+                  color: Color(0xFFE53935), size: 22),
           ],
         ),
       ),
@@ -1861,7 +1861,7 @@ class _PeaceOnboardingBottomSheetState
           controller: _loginEmailController,
           keyboardType: TextInputType.emailAddress,
           style: const TextStyle(color: Colors.white, fontSize: 16),
-          cursorColor: const Color(0xFF7C4DFF),
+          cursorColor: const Color(0xFFE53935),
           decoration: InputDecoration(
             hintText: "Enter your email or username",
             hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
@@ -1878,7 +1878,7 @@ class _PeaceOnboardingBottomSheetState
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.8),
+              borderSide: const BorderSide(color: Color(0xFFE53935), width: 1.8),
             ),
           ),
         ),
@@ -1898,7 +1898,7 @@ class _PeaceOnboardingBottomSheetState
           controller: _loginPasswordController,
           obscureText: _obscureLoginPassword,
           style: const TextStyle(color: Colors.white, fontSize: 16),
-          cursorColor: const Color(0xFF7C4DFF),
+          cursorColor: const Color(0xFFE53935),
           decoration: InputDecoration(
             hintText: "Enter your password",
             hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
@@ -1922,7 +1922,7 @@ class _PeaceOnboardingBottomSheetState
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.8),
+              borderSide: const BorderSide(color: Color(0xFFE53935), width: 1.8),
             ),
           ),
         ),
@@ -1935,7 +1935,7 @@ class _PeaceOnboardingBottomSheetState
             child: const Text(
               "Forgot password?",
               style: TextStyle(
-                color: Color(0xFF7C4DFF),
+                color: Color(0xFFE53935),
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
@@ -1949,10 +1949,10 @@ class _PeaceOnboardingBottomSheetState
           height: 52,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF7C4DFF),
+              backgroundColor: const Color(0xFFE53935),
               foregroundColor: Colors.white,
               elevation: 4,
-              shadowColor: const Color(0xFF7C4DFF).withOpacity(0.35),
+              shadowColor: const Color(0xFFE53935).withOpacity(0.35),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(26),
               ),
@@ -2057,7 +2057,7 @@ class _PeaceOnboardingBottomSheetState
                 child: const Text(
                   "Sign up",
                   style: TextStyle(
-                    color: Color(0xFF7C4DFF),
+                    color: Color(0xFFE53935),
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                     decoration: TextDecoration.underline,
@@ -2140,7 +2140,7 @@ class _PeaceOnboardingBottomSheetState
             letterSpacing: 14,
           ),
           maxLength: 6,
-          cursorColor: const Color(0xFF7C4DFF),
+          cursorColor: const Color(0xFFE53935),
           decoration: InputDecoration(
             counterText: "",
             hintText: "••••••",
@@ -2158,7 +2158,7 @@ class _PeaceOnboardingBottomSheetState
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.8),
+              borderSide: const BorderSide(color: Color(0xFFE53935), width: 1.8),
             ),
           ),
           onChanged: (val) {
@@ -2174,10 +2174,10 @@ class _PeaceOnboardingBottomSheetState
           height: 52,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF7C4DFF),
+              backgroundColor: const Color(0xFFE53935),
               foregroundColor: Colors.white,
               elevation: 4,
-              shadowColor: const Color(0xFF7C4DFF).withOpacity(0.35),
+              shadowColor: const Color(0xFFE53935).withOpacity(0.35),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(26),
               ),
@@ -2217,7 +2217,7 @@ class _PeaceOnboardingBottomSheetState
                 child: const Text(
                   "Resend Code",
                   style: TextStyle(
-                    color: Color(0xFF7C4DFF),
+                    color: Color(0xFFE53935),
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                     decoration: TextDecoration.underline,

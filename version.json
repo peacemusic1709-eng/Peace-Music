@@ -1,7 +1,7 @@
 {
-  "versionCode": 27,
-  "versionName": "1.2.6",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.2.6/PeaceMusic.apk",
-  "changelog": "Replaced gender emojis with clean vector symbols (male/female/transgender)",
+  "versionCode": 28,
+  "versionName": "1.2.7",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.2.7/PeaceMusic.apk",
+  "changelog": "Replaced purple accents with sleek red + iPhone-style glassy blur theme across onboarding pages",
   "updatedAt": "2026-11-24"
 }
