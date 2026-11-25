@@ -52,25 +52,26 @@ class StreamProvider {
         );
         if (oembed.data is Map) {
           final title = oembed.data["title"]?.toString() ?? "";
-          final author = oembed.data["author_name"]?.toString() ?? "";
-          query = "$title $author".trim();
+          query = title;
         }
       } catch (_) {}
 
       if (query.isEmpty) {
         try {
           final v = await yt.videos.get(videoId);
-          query = "${v.title} ${v.author}".trim();
+          query = v.title;
         } catch (_) {}
       }
       if (query.isEmpty) return null;
 
-      // Clean common YouTube suffixes for accurate JioSaavn match
+      // Clean YouTube title to just the core song name for accurate JioSaavn match
       query = query
-          .replaceAll(RegExp(r'\(.*?\)|\[.*?\]'), ' ')
+          .split(RegExp(r'\||-|–|\(|\['))
+          .first
           .replaceAll(RegExp(r'official\s*(music\s*)?(video|audio|lyric|lyrics)|full\s*song|hd|4k|lyrical', caseSensitive: false), ' ')
           .replaceAll(RegExp(r'\s+'), ' ')
           .trim();
+      if (query.isEmpty) return null;
 
       final dio = Dio(BaseOptions(
         headers: {"User-Agent": "Mozilla/5.0"},

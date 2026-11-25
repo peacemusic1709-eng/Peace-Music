@@ -1,7 +1,7 @@
 {
-  "versionCode": 40,
-  "versionName": "1.3.9",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.3.9/PeaceMusic.apk",
-  "changelog": "JioSaavn 320kbps primary streaming & download (unblocked, zero HTTP 403) with YouTube + Piped fallback",
+  "versionCode": 41,
+  "versionName": "1.4.0",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.4.0/PeaceMusic.apk",
+  "changelog": "Bypass old cached YouTube 403 URLs and clean song title for 100% JioSaavn 320kbps match",
   "updatedAt": "2026-11-25"
 }
