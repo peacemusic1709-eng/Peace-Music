@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
@@ -37,11 +38,114 @@ class StreamProvider {
     "https://api.piped.private.coffee",
   ];
 
+  static Future<String?> _getJioSaavnStreamUrl(String videoId, YoutubeExplode yt, {int bitrate = 320}) async {
+    try {
+      String query = "";
+      try {
+        final oembed = await Dio().get(
+          "https://www.youtube.com/oembed",
+          queryParameters: {
+            "url": "https://www.youtube.com/watch?v=$videoId",
+            "format": "json",
+          },
+          options: Options(sendTimeout: const Duration(seconds: 4), receiveTimeout: const Duration(seconds: 4)),
+        );
+        if (oembed.data is Map) {
+          final title = oembed.data["title"]?.toString() ?? "";
+          final author = oembed.data["author_name"]?.toString() ?? "";
+          query = "$title $author".trim();
+        }
+      } catch (_) {}
+
+      if (query.isEmpty) {
+        try {
+          final v = await yt.videos.get(videoId);
+          query = "${v.title} ${v.author}".trim();
+        } catch (_) {}
+      }
+      if (query.isEmpty) return null;
+
+      // Clean common YouTube suffixes for accurate JioSaavn match
+      query = query
+          .replaceAll(RegExp(r'\(.*?\)|\[.*?\]'), ' ')
+          .replaceAll(RegExp(r'official\s*(music\s*)?(video|audio|lyric|lyrics)|full\s*song|hd|4k|lyrical', caseSensitive: false), ' ')
+          .replaceAll(RegExp(r'\s+'), ' ')
+          .trim();
+
+      final dio = Dio(BaseOptions(
+        headers: {"User-Agent": "Mozilla/5.0"},
+        sendTimeout: const Duration(seconds: 6),
+        receiveTimeout: const Duration(seconds: 6),
+      ));
+
+      final searchRes = await dio.get(
+        "https://www.jiosaavn.com/api.php",
+        queryParameters: {
+          "__call": "search.getResults",
+          "_format": "json",
+          "_marker": "0",
+          "cc": "in",
+          "q": query,
+          "n": "3",
+        },
+      );
+
+      dynamic searchData = searchRes.data;
+      if (searchData is String) searchData = jsonDecode(searchData);
+      if (searchData is! Map || searchData["results"] is! List || (searchData["results"] as List).isEmpty) {
+        return null;
+      }
+
+      final first = (searchData["results"] as List).first;
+      final encUrl = first is Map ? first["encrypted_media_url"]?.toString() : null;
+      if (encUrl == null || encUrl.isEmpty) return null;
+
+      final tokenRes = await dio.get(
+        "https://www.jiosaavn.com/api.php",
+        queryParameters: {
+          "__call": "song.generateAuthToken",
+          "url": encUrl,
+          "bitrate": bitrate.toString(),
+          "api_version": "4",
+          "_format": "json",
+          "ctx": "web6dot0",
+          "_marker": "0",
+        },
+      );
+
+      dynamic tokenData = tokenRes.data;
+      if (tokenData is String) tokenData = jsonDecode(tokenData);
+      if (tokenData is Map && (tokenData["auth_url"]?.toString() ?? "").isNotEmpty) {
+        return tokenData["auth_url"].toString();
+      }
+    } catch (_) {}
+    return null;
+  }
+
   static Future<StreamProvider> fetch(String videoId) async {
     final yt = YoutubeExplode();
     Object? lastError;
 
     try {
+      // 1. Primary: JioSaavn 320kbps direct CDN (never blocked by YouTube 403!)
+      final jioUrl = await _getJioSaavnStreamUrl(videoId, yt, bitrate: 320);
+      if (jioUrl != null && jioUrl.isNotEmpty) {
+        return StreamProvider(
+          playable: true,
+          statusMSG: "OK",
+          audioFormats: [
+            Audio(
+              itag: 140,
+              audioCodec: Codec.mp4a,
+              bitrate: 320000,
+              url: jioUrl,
+              size: 0,
+            ),
+          ],
+        );
+      }
+
+      // 2. Fallback: YouTube multi-client
       for (final client in _fallbackClients) {
         try {
           final res = await yt.videos.streamsClient
@@ -138,6 +242,22 @@ class StreamProvider {
     var yt = YoutubeExplode();
 
     try {
+      // 1. Try JioSaavn 320kbps direct download first
+      final jioUrl = await _getJioSaavnStreamUrl(songId, yt, bitrate: 320);
+      if (jioUrl != null && jioUrl.isNotEmpty) {
+        await Dio().download(
+          jioUrl,
+          filePath,
+          onReceiveProgress: (received, total) {
+            if (total > 0) {
+              onProgress(((received / total) * 100).toInt());
+            }
+          },
+        );
+        printINFO('Downloaded successfully from JioSaavn!');
+        return;
+      }
+
       StreamManifest? manifest;
       for (final client in _fallbackClients) {
         try {
