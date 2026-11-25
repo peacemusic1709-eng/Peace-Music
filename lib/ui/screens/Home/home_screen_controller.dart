@@ -122,13 +122,18 @@ class HomeScreenController extends GetxController {
             "$artist $mod",
             filter: useAlbums ? "albums" : "playlists",
           );
-          final items = res[useAlbums ? "Albums" : "Playlists"];
-          if (items is List && items.isNotEmpty) {
-            final sectionTitle = useAlbums ? "$artist • Albums" : "$artist • $mod";
-            final dynamic parsed = useAlbums
-                ? AlbumContent(albumList: items.whereType<Album>().toList(), title: sectionTitle)
-                : PlaylistContent(playlistList: items.whereType<Playlist>().toList(), title: sectionTitle);
-            if (!dynamicEndlessContent.any((dynamic existing) => (existing as dynamic).title == sectionTitle)) {
+          final allItems = res.values.whereType<List>().expand((e) => e).toList();
+          if (allItems.isNotEmpty) {
+            final playlists = allItems.whereType<Playlist>().toList();
+            final albums = allItems.whereType<Album>().toList();
+            final sectionTitle = useAlbums && albums.isNotEmpty
+                ? "$artist • Albums"
+                : "$artist • $mod";
+            final dynamic parsed = (useAlbums && albums.isNotEmpty)
+                ? AlbumContent(albumList: albums, title: sectionTitle)
+                : PlaylistContent(playlistList: playlists, title: sectionTitle);
+            if (((useAlbums && albums.isNotEmpty) || playlists.isNotEmpty) &&
+                !dynamicEndlessContent.any((dynamic existing) => (existing as dynamic).title == sectionTitle)) {
               newSections.add(parsed);
             }
           }
