@@ -127,22 +127,12 @@ class _SplashScreenState extends State<SplashScreen>
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Logo with scale animation
+                // Logo with scale animation (no background box)
                 Transform.scale(
                   scale: currentLogoScale,
-                  child: Container(
+                  child: SizedBox(
                     width: 76,
                     height: 76,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFE040FB).withOpacity(0.3),
-                          blurRadius: 22,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
                     child: Image.asset(
                       'assets/icons/colored-logo.png',
                       fit: BoxFit.contain,

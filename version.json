@@ -1,7 +1,7 @@
 {
-  "versionCode": 30,
-  "versionName": "1.2.9",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.2.9/PeaceMusic.apk",
-  "changelog": "Transparent background for in-app/splash logo and zoomed edge-to-edge black adaptive launcher icons",
+  "versionCode": 31,
+  "versionName": "1.3.0",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.3.0/PeaceMusic.apk",
+  "changelog": "100% transparent background on splash animation logo and home screen logo",
   "updatedAt": "2026-11-25"
 }
