@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:widget_marquee/widget_marquee.dart';
 
 import '../../models/playlist.dart';
+import '../../services/peace_auth_service.dart';
 import '../player/player_controller.dart';
 import '../screens/Settings/settings_screen_controller.dart';
 import 'add_to_playlist.dart';
@@ -108,8 +109,21 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
               //label: 'Play Next',
             ),
           ]),
-          child: ListTile(
-            onTap: onTap,
+          child: Obx(() {
+            final auth = Get.isRegistered<PeaceAuthService>()
+                ? Get.find<PeaceAuthService>()
+                : null;
+            final isCloudOnly = auth != null && auth.isCloudOnlySong(song);
+            return Opacity(
+              opacity: isCloudOnly ? 0.50 : 1.0,
+              child: ListTile(
+                onTap: () {
+                  if (isCloudOnly) {
+                    auth.downloadAndPlayCloudSong(song, fallbackPlay: onTap);
+                  } else {
+                    onTap?.call();
+                  }
+                },
             onLongPress: () async {
               showModalBottomSheet(
                 constraints: const BoxConstraints(maxWidth: 500),
@@ -181,6 +195,11 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
                       ),
                     ],
                   ),
+                  if (isCloudOnly)
+                    const Padding(
+                      padding: EdgeInsets.only(left: 4),
+                      child: Icon(Icons.cloud_download_outlined, size: 18, color: Colors.white70),
+                    ),
                   if (GetPlatform.isDesktop)
                     IconButton(
                         splashRadius: 20,
@@ -208,6 +227,8 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
               ),
             ),
           ),
+            );
+          }),
         ));
   }
 }

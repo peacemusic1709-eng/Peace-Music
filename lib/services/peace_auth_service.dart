@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'package:audio_service/audio_service.dart';
 import 'package:dio/dio.dart';
@@ -21,10 +22,32 @@ class PeaceAuthService extends GetxService {
   final isGuest = false.obs;
   final isSyncing = false.obs;
   final selectedArtists = <String>[].obs;
+  final cloudOnlySongIds = <String>{}.obs;
   final Map<String, String> _activeOtps = {};
   bool hasShownLaunchOnboarding = false;
 
-  bool get hasSelectedArtists => selectedArtists.length >= 3;
+  bool isCloudOnlySong(MediaItem song) {
+    if (cloudOnlySongIds.contains(song.id)) return true;
+    final url = song.extras?['url']?.toString() ?? "";
+    if (url.startsWith('/') && !url.startsWith('http')) {
+      try {
+        if (!File(url).existsSync()) return true;
+      } catch (_) {}
+    }
+    return false;
+  }
+
+  Future<void> downloadAndPlayCloudSong(MediaItem song, {VoidCallback? fallbackPlay}) async {
+    cloudOnlySongIds.remove(song.id);
+    try {
+      Get.find<Downloader>().download(song);
+    } catch (e) {
+      debugPrint("Cloud song auto-download error: $e");
+    }
+    if (fallbackPlay != null) {
+      fallbackPlay();
+    }
+  }
 
   Future<void> saveSelectedArtists(List<String> artists) async {
     final clean = artists.map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
@@ -851,29 +874,21 @@ class PeaceAuthService extends GetxService {
         }
       }
 
-      // 4. Check for offline downloads on this device!
-      final cloudDownloadedIds = (cloudData['downloadedSongIds'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [];
-
+      // 4. Restore downloaded songs into SongDownloads with dim/cloud-only marker if file not on this device
       final localDownloadsBox = Hive.box("SongDownloads");
-      final missingSongIds = cloudDownloadedIds
-          .where((id) => !localDownloadsBox.containsKey(id))
-          .toList();
-
-      if (missingSongIds.isNotEmpty && cloudData['downloadedSongs'] is List) {
-        final missingSongs = (cloudData['downloadedSongs'] as List)
-            .whereType<Map>()
-            .where((m) => missingSongIds.contains(m['id']))
-            .map<MediaItem?>((m) => MediaItemBuilder.fromJson(m))
-            .whereType<MediaItem>()
-            .toList();
-
-        if (missingSongs.isNotEmpty) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _showDownloadLibraryPrompt(missingSongs);
-          });
+      if (cloudData['downloadedSongs'] is List) {
+        for (var item in cloudData['downloadedSongs']) {
+          if (item is Map && item.containsKey('id')) {
+            final songId = item['id'].toString();
+            final url = item['extras'] is Map ? (item['extras']['url']?.toString() ?? '') : '';
+            final existsLocally = url.isNotEmpty && !url.startsWith('http') && File(url).existsSync();
+            if (!existsLocally) {
+              cloudOnlySongIds.add(songId);
+            }
+            if (!localDownloadsBox.containsKey(songId)) {
+              await localDownloadsBox.put(songId, item);
+            }
+          }
         }
       }
       _refreshActiveControllers();
