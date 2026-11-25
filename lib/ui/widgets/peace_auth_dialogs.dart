@@ -20,6 +20,58 @@ enum OnboardingView {
 }
 
 /// Official Vector 4-Color Google 'G' Logo
+class _AnimatedDotsLoader extends StatefulWidget {
+  const _AnimatedDotsLoader();
+
+  @override
+  State<_AnimatedDotsLoader> createState() => _AnimatedDotsLoaderState();
+}
+
+class _AnimatedDotsLoaderState extends State<_AnimatedDotsLoader>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(3, (i) {
+            final t = (_ctrl.value - i * 0.2) % 1.0;
+            final scale = (t < 0.5 ? t * 2 : (1.0 - t) * 2).clamp(0.4, 1.0);
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 5),
+              width: 10 * scale + 2,
+              height: 10 * scale + 2,
+              decoration: BoxDecoration(
+                color: Color.lerp(Colors.white38, const Color(0xFF7C4DFF), scale),
+                shape: BoxShape.circle,
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+}
+
 class GoogleLogoWidget extends StatelessWidget {
   final double size;
   const GoogleLogoWidget({super.key, this.size = 20});
@@ -138,6 +190,7 @@ class _PeaceOnboardingBottomSheetState
   final List<String> _selectedArtists = [];
   final Map<String, String> _artistImages = {};
   bool _isFetchingArtistImages = false;
+  bool _isPersonalizing = false;
 
   Future<void> _fetchArtistImages() async {
     if (_isFetchingArtistImages) return;
@@ -149,17 +202,27 @@ class _PeaceOnboardingBottomSheetState
         final name = artist["name"]!;
         if (_artistImages.containsKey(name)) continue;
         try {
+          String thumb = "";
           final res = await musicService.search(name, filter: "artists");
           final artists = res["Artists"];
           if (artists is List && artists.isNotEmpty) {
             final first = artists.first;
             if (first is Artist && first.thumbnailUrl.isNotEmpty) {
-              if (mounted) {
-                setState(() {
-                  _artistImages[name] = first.thumbnailUrl;
-                });
-              }
+              thumb = first.thumbnailUrl;
             }
+          }
+          if (thumb.isEmpty) {
+            final songRes = await musicService.search(name, filter: "songs");
+            final songs = songRes["Songs"];
+            if (songs is List && songs.isNotEmpty) {
+              final uri = (songs.first as dynamic).artUri?.toString() ?? "";
+              if (uri.isNotEmpty) thumb = uri;
+            }
+          }
+          if (thumb.isNotEmpty && mounted) {
+            setState(() {
+              _artistImages[name] = thumb;
+            });
           }
         } catch (_) {}
       }
@@ -438,6 +501,33 @@ class _PeaceOnboardingBottomSheetState
     _fetchArtistImages();
     final auth = Get.find<PeaceAuthService>();
     final bool canProceed = _selectedArtists.length >= 3;
+    final mq = MediaQuery.of(context);
+    final gridHeight = (mq.size.height - mq.padding.top - mq.padding.bottom - 240).clamp(320.0, 700.0);
+
+    if (_isPersonalizing) {
+      return SizedBox(
+        height: mq.size.height - mq.padding.top - mq.padding.bottom - 60,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset('assets/icons/colored-logo.png', width: 64, height: 64),
+              const SizedBox(height: 24),
+              const Text(
+                "Personalizing your feed",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const _AnimatedDotsLoader(),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,7 +578,7 @@ class _PeaceOnboardingBottomSheetState
         ),
         const SizedBox(height: 18),
         SizedBox(
-          height: MediaQuery.of(context).size.height * 0.56,
+          height: gridHeight,
           child: GridView.builder(
             physics: const BouncingScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -602,10 +692,13 @@ class _PeaceOnboardingBottomSheetState
             ),
             onPressed: canProceed
                 ? () async {
+                    setState(() => _isPersonalizing = true);
                     await auth.saveSelectedArtists(_selectedArtists);
-                    if (Get.isRegistered<HomeScreenController>()) {
-                      Get.find<HomeScreenController>().refreshArtistFeed();
-                    }
+                    final minWait = Future.delayed(const Duration(milliseconds: 2500));
+                    final feedFuture = Get.isRegistered<HomeScreenController>()
+                        ? Get.find<HomeScreenController>().refreshArtistFeed()
+                        : Future.value();
+                    await Future.wait([minWait, feedFuture]);
                     if (context.mounted) Navigator.pop(context);
                   }
                 : null,

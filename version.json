@@ -1,7 +1,7 @@
 {
-  "versionCode": 23,
-  "versionName": "1.2.2",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.2.2/PeaceMusic.apk",
-  "changelog": "Fast parallel home feed loading, clean Quick picks title, and transparent frosted glass blur mini-player",
+  "versionCode": 24,
+  "versionName": "1.2.3",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.2.3/PeaceMusic.apk",
+  "changelog": "Removed Peace Music header from Search/Library, full-screen artist picker with song thumbnail fallback, 2.5s dot loader, and faster 3-batch endless feed",
   "updatedAt": "2026-11-24"
 }

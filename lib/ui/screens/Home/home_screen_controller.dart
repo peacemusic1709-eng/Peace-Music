@@ -94,6 +94,7 @@ class HomeScreenController extends GetxController {
     await Future.wait([
       loadNextEndlessBatch(),
       loadNextEndlessBatch(),
+      loadNextEndlessBatch(),
     ]);
   }
 

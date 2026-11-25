@@ -57,7 +57,6 @@ class SearchScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const PeaceMusicHeader(padding: EdgeInsets.only(bottom: 8)),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
