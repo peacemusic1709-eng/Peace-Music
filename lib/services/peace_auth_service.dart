@@ -850,8 +850,11 @@ class PeaceAuthService extends GetxService {
       if (cloudData['favorites'] is List) {
         final favBox = await Hive.openBox("LIBFAV");
         for (var item in cloudData['favorites']) {
-          if (item is Map && item.containsKey('id')) {
-            await favBox.put(item['id'], item);
+          if (item is Map) {
+            final songId = (item['videoId'] ?? item['id'])?.toString() ?? '';
+            if (songId.isNotEmpty) {
+              await favBox.put(songId, item);
+            }
           }
         }
       }
@@ -870,8 +873,11 @@ class PeaceAuthService extends GetxService {
       if (cloudData['recentlyPlayed'] is List) {
         final recentBox = await Hive.openBox("LIBRP");
         for (var item in cloudData['recentlyPlayed']) {
-          if (item is Map && item.containsKey('id')) {
-            await recentBox.put(item['id'], item);
+          if (item is Map) {
+            final songId = (item['videoId'] ?? item['id'])?.toString() ?? '';
+            if (songId.isNotEmpty) {
+              await recentBox.put(songId, item);
+            }
           }
         }
       }
@@ -902,9 +908,10 @@ class PeaceAuthService extends GetxService {
       final localDownloadsBox = Hive.box("SongDownloads");
       if (cloudData['downloadedSongs'] is List) {
         for (var item in cloudData['downloadedSongs']) {
-          if (item is Map && item.containsKey('id')) {
-            final songId = item['id'].toString();
-            final url = item['extras'] is Map ? (item['extras']['url']?.toString() ?? '') : '';
+          if (item is Map) {
+            final songId = (item['videoId'] ?? item['id'])?.toString() ?? '';
+            if (songId.isEmpty) continue;
+            final url = (item['url'] ?? (item['extras'] is Map ? item['extras']['url'] : null))?.toString() ?? '';
             final existsLocally = url.isNotEmpty && !url.startsWith('http') && File(url).existsSync();
             if (!existsLocally) {
               cloudOnlySongIds.add(songId);

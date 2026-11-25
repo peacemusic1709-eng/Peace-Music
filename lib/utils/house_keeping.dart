@@ -5,6 +5,7 @@ import '/models/media_Item_builder.dart';
 import '/ui/screens/Library/library_controller.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
+import '../services/peace_auth_service.dart';
 import '../services/utils.dart';
 import 'helper.dart';
 
@@ -44,6 +45,12 @@ Future<void> removeDeletedOfflineSongsFromDb() async {
       final songKey = downloadedSongs[i]['videoId'];
       final songUrl = downloadedSongs[i]['url'];
       if (await File(songUrl).exists() == false) {
+        if (Get.isRegistered<PeaceAuthService>() &&
+            Get.find<PeaceAuthService>().isLoggedIn.value &&
+            !Get.find<PeaceAuthService>().isGuest.value) {
+          Get.find<PeaceAuthService>().cloudOnlySongIds.add(songKey.toString());
+          continue;
+        }
         await songDownloadsBox.delete(songKey);
         await librarySongsController.removeSong(
             MediaItemBuilder.fromJson(downloadedSongs[i]), true);
