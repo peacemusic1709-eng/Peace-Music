@@ -267,6 +267,7 @@ class _PeaceOnboardingBottomSheetState
   }
 
   void _initVideoBackground() {
+    if (GetPlatform.isDesktop) return;
     try {
       _videoController = VideoPlayerController.asset("assets/videos/welcome_video.mp4")
         ..initialize().then((_) {
@@ -353,6 +354,22 @@ class _PeaceOnboardingBottomSheetState
   }
 
   Future<void> _handleGoogleSignIn() async {
+    if (GetPlatform.isDesktop) {
+      await showDialog(
+        context: context,
+        builder: (_) => const GoogleLoginDialog(),
+      );
+      final auth = Get.find<PeaceAuthService>();
+      if (auth.isLoggedIn.value && mounted) {
+        final hasPass = (auth.currentUser.value?.password ?? "").trim().isNotEmpty;
+        if (!hasPass) {
+          _goTo(OnboardingView.setGooglePassword);
+        } else {
+          _finishAuthOrSelectArtists();
+        }
+      }
+      return;
+    }
     final auth = Get.find<PeaceAuthService>();
     setState(() => _isLoading = true);
 
@@ -455,32 +472,39 @@ class _PeaceOnboardingBottomSheetState
               ),
 
             SafeArea(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(24, topInset + 12, 24, 24),
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: mq.size.height - mq.padding.top - mq.padding.bottom - 48,
-                    ),
-                    child: IntrinsicHeight(
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 240),
-                        switchInCurve: Curves.easeOutCubic,
-                        switchOutCurve: Curves.easeInCubic,
-                        transitionBuilder: (child, anim) => FadeTransition(
-                          opacity: anim,
-                          child: SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(0.03, 0),
-                              end: Offset.zero,
-                            ).animate(anim),
-                            child: child,
-                          ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: _currentView == OnboardingView.selectArtists ? 680 : 480,
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(24, topInset + 12, 24, 24),
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: mq.size.height - mq.padding.top - mq.padding.bottom - 48,
                         ),
-                        child: KeyedSubtree(
-                          key: ValueKey(_currentView),
-                          child: _buildCurrentView(context),
+                        child: IntrinsicHeight(
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 240),
+                            switchInCurve: Curves.easeOutCubic,
+                            switchOutCurve: Curves.easeInCubic,
+                            transitionBuilder: (child, anim) => FadeTransition(
+                              opacity: anim,
+                              child: SlideTransition(
+                                position: Tween<Offset>(
+                                  begin: const Offset(0.03, 0),
+                                  end: Offset.zero,
+                                ).animate(anim),
+                                child: child,
+                              ),
+                            ),
+                            child: KeyedSubtree(
+                              key: ValueKey(_currentView),
+                              child: _buildCurrentView(context),
+                            ),
+                          ),
                         ),
                       ),
                     ),
