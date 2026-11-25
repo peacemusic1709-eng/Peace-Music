@@ -19,6 +19,7 @@ import '/utils/helper.dart';
 import '/models/media_Item_builder.dart';
 import '../ui/screens/Library/library_controller.dart';
 import 'music_service.dart';
+import 'peace_auth_service.dart';
 //import '../models/thumbnail.dart' as th;
 
 class Downloader extends GetxService {
@@ -231,6 +232,9 @@ class Downloader extends GetxService {
 
       Hive.box("SongDownloads").put(song.id, songJson);
       Get.find<LibrarySongsController>().librarySongsList.add(song);
+      if (Get.isRegistered<PeaceAuthService>()) {
+        Get.find<PeaceAuthService>().triggerAutoSync();
+      }
       printINFO("Downloaded successfully");
 
       final trackDetails = (song.extras?['trackDetails'])?.split("/");

@@ -20,6 +20,7 @@ import '../screens/Home/home_screen_controller.dart';
 import '../widgets/sliding_up_panel.dart';
 import '/models/durationstate.dart';
 import '/services/music_service.dart';
+import '/services/peace_auth_service.dart';
 
 class PlayerController extends GetxController
     with GetSingleTickerProviderStateMixin {
@@ -685,6 +686,9 @@ class PlayerController extends GetxController
       // ignore: empty_catches
     } catch (e) {}
     isCurrentSongFav.value = !isCurrentSongFav.value;
+    if (Get.isRegistered<PeaceAuthService>()) {
+      Get.find<PeaceAuthService>().triggerAutoSync();
+    }
     if (Get.find<SettingsScreenController>()
             .autoDownloadFavoriteSongEnabled
             .isTrue &&
@@ -712,6 +716,9 @@ class PlayerController extends GetxController
         }
       }
       box.add(MediaItemBuilder.toJson(mediaItem));
+      if (Get.isRegistered<PeaceAuthService>()) {
+        Get.find<PeaceAuthService>().triggerAutoSync();
+      }
       try {
         final playlistController = Get.find<PlaylistScreenController>(
             tag: const Key("LIBRP").hashCode.toString());

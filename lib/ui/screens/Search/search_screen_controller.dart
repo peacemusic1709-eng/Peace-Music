@@ -4,6 +4,7 @@ import 'package:hive/hive.dart';
 
 import '/utils/app_link_controller.dart' show ProcessLink;
 import '/services/music_service.dart';
+import '/services/peace_auth_service.dart';
 
 class SearchScreenController extends GetxController with ProcessLink {
   final textInputController = TextEditingController();
@@ -58,6 +59,9 @@ class SearchScreenController extends GetxController with ProcessLink {
     if (!historyQuerylist.contains(txt)) {
       await queryBox.add(txt);
       historyQuerylist.insert(0, txt);
+      if (Get.isRegistered<PeaceAuthService>()) {
+        Get.find<PeaceAuthService>().triggerAutoSync();
+      }
     }
 
     //reset current query and suggestionlist

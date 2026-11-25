@@ -1,7 +1,7 @@
 {
-  "versionCode": 36,
-  "versionName": "1.3.5",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.3.5/PeaceMusic.apk",
-  "changelog": "Prevent empty local boxes from overwriting VPS cloud backup on logout/sync",
+  "versionCode": 37,
+  "versionName": "1.3.6",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.3.6/PeaceMusic.apk",
+  "changelog": "Real-time automatic VPS cloud sync on every play, download, favorite, search & artist selection",
   "updatedAt": "2026-11-25"
 }

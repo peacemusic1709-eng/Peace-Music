@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -23,7 +24,16 @@ class PeaceAuthService extends GetxService {
   final isSyncing = false.obs;
   final selectedArtists = <String>[].obs;
   final cloudOnlySongIds = <String>{}.obs;
+  Timer? _autoSyncTimer;
   bool get hasSelectedArtists => selectedArtists.length >= 3;
+
+  void triggerAutoSync() {
+    if (!isLoggedIn.value || isGuest.value || currentUser.value == null) return;
+    _autoSyncTimer?.cancel();
+    _autoSyncTimer = Timer(const Duration(seconds: 2), () {
+      syncWithCloud(showNotice: false);
+    });
+  }
   final Map<String, String> _activeOtps = {};
   bool hasShownLaunchOnboarding = false;
 
@@ -54,6 +64,7 @@ class PeaceAuthService extends GetxService {
     final clean = artists.map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
     selectedArtists.assignAll(clean);
     await _authBox.put("selectedArtists", clean);
+    triggerAutoSync();
   }
 
   static const String googleScriptWebhookUrl =
