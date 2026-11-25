@@ -503,7 +503,11 @@ class PeaceAuthService extends GetxService {
             await _saveUserToRegistry(saved);
           }
         }
-        showCustomSnackBar("Aapka password badal gaya hai! Ab naye password se login karein.", title: "Password Reset Complete 🎉");
+        if (currentUser.value?.email == cleanEmail) {
+          currentUser.value = currentUser.value!.copyWith(password: newPassword);
+          await _authBox.put("currentUser", currentUser.value!.toJson());
+        }
+        showCustomSnackBar("Aapka password set ho gaya hai! Ab kisi bhi phone par Gmail + password se login kar sakte hain.", title: "Password Saved 🎉");
         return true;
       }
     } catch (e) {

@@ -16,6 +16,7 @@ enum OnboardingView {
   guestGender,
   loginEmail,
   otpVerify,
+  setGooglePassword,
   selectArtists,
 }
 
@@ -150,7 +151,11 @@ class _GoogleLogoPainter extends CustomPainter {
 class PeaceOnboardingBottomSheet extends StatefulWidget {
   const PeaceOnboardingBottomSheet({super.key});
 
+  static bool _isSheetOpen = false;
+
   static Future<void> show(BuildContext context) {
+    if (_isSheetOpen) return Future.value();
+    _isSheetOpen = true;
     return showModalBottomSheet(
       context: context,
       useRootNavigator: true,
@@ -159,7 +164,9 @@ class PeaceOnboardingBottomSheet extends StatefulWidget {
       isDismissible: false,
       backgroundColor: Colors.transparent,
       builder: (ctx) => const PeaceOnboardingBottomSheet(),
-    );
+    ).whenComplete(() {
+      _isSheetOpen = false;
+    });
   }
 
   @override
@@ -177,6 +184,7 @@ class _PeaceOnboardingBottomSheetState
   final _guestNameController = TextEditingController();
   final _loginEmailController = TextEditingController();
   final _loginPasswordController = TextEditingController();
+  final _googlePasswordController = TextEditingController();
   final _otpController = TextEditingController();
 
   String _selectedGender = "Male";
@@ -287,6 +295,7 @@ class _PeaceOnboardingBottomSheetState
     _guestNameController.dispose();
     _loginEmailController.dispose();
     _loginPasswordController.dispose();
+    _googlePasswordController.dispose();
     _otpController.dispose();
     super.dispose();
   }
@@ -359,7 +368,12 @@ class _PeaceOnboardingBottomSheetState
     }
 
     if (loggedIn && mounted) {
-      _finishAuthOrSelectArtists();
+      final hasPass = (auth.currentUser.value?.password ?? "").trim().isNotEmpty;
+      if (!hasPass) {
+        _goTo(OnboardingView.setGooglePassword);
+      } else {
+        _finishAuthOrSelectArtists();
+      }
     }
   }
 
@@ -450,7 +464,25 @@ class _PeaceOnboardingBottomSheetState
                       minHeight: mq.size.height - mq.padding.top - mq.padding.bottom - 48,
                     ),
                     child: IntrinsicHeight(
-                      child: _buildCurrentView(context),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 240),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeInCubic,
+                        transitionBuilder: (child, anim) => FadeTransition(
+                          opacity: anim,
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0.03, 0),
+                              end: Offset.zero,
+                            ).animate(anim),
+                            child: child,
+                          ),
+                        ),
+                        child: KeyedSubtree(
+                          key: ValueKey(_currentView),
+                          child: _buildCurrentView(context),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -482,9 +514,105 @@ class _PeaceOnboardingBottomSheetState
         return _buildLoginEmailView(context);
       case OnboardingView.otpVerify:
         return _buildOtpVerifyView(context);
+      case OnboardingView.setGooglePassword:
+        return _buildSetGooglePasswordView(context);
       case OnboardingView.selectArtists:
         return _buildSelectArtistsView(context);
     }
+  }
+
+  Widget _buildSetGooglePasswordView(BuildContext context) {
+    final auth = Get.find<PeaceAuthService>();
+    final email = auth.currentUser.value?.email ?? "";
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        const Text(
+          "Create a password",
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+            letterSpacing: -0.4,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          "Apne Google account ($email) ke liye ek password set karein, taaki kisi bhi phone par Gmail + password se login kar sakein.",
+          style: const TextStyle(fontSize: 13.5, color: Colors.white60, height: 1.4),
+        ),
+        const SizedBox(height: 28),
+        TextField(
+          controller: _googlePasswordController,
+          obscureText: _obscurePassword,
+          autofocus: true,
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+          cursorColor: const Color(0xFFE53935),
+          decoration: InputDecoration(
+            hintText: "Create password (min 4 characters)",
+            hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
+            filled: true,
+            fillColor: const Color(0xFF161616),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                color: Colors.white54,
+              ),
+              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF242638)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF242638)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFFE53935), width: 1.8),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE53935),
+              foregroundColor: Colors.white,
+              elevation: 4,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+            ),
+            onPressed: _isLoading
+                ? null
+                : () async {
+                    final pass = _googlePasswordController.text;
+                    if (pass.length < 4) {
+                      auth.showCustomSnackBar("Kam se kam 4 character ka password dalein.", title: "Weak Password");
+                      return;
+                    }
+                    setState(() => _isLoading = true);
+                    await auth.resetPassword(email: email, newPassword: pass);
+                    if (mounted) {
+                      setState(() => _isLoading = false);
+                      _finishAuthOrSelectArtists();
+                    }
+                  },
+            child: _isLoading
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  )
+                : const Text("Save Password & Continue", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildSelectArtistsView(BuildContext context) {
