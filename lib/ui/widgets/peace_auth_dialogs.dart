@@ -2280,7 +2280,7 @@ class _PeaceLoginDialogState extends State<PeaceLoginDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF18181B),
+      backgroundColor: const Color(0xFF121214),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
         side: BorderSide(color: Colors.white.withOpacity(0.1)),
@@ -2300,10 +2300,10 @@ class _PeaceLoginDialogState extends State<PeaceLoginDialog> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE040FB).withOpacity(0.15),
+                          color: const Color(0xFFE53935).withOpacity(0.15),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(Icons.login_rounded, color: Color(0xFFE040FB), size: 24),
+                        child: const Icon(Icons.login_rounded, color: Color(0xFFE53935), size: 24),
                       ),
                       const SizedBox(width: 12),
                       const Text(
@@ -2389,7 +2389,7 @@ class _PeaceLoginDialogState extends State<PeaceLoginDialog> {
                   child: const Text(
                     "Forgot Password?",
                     style: TextStyle(
-                      color: Color(0xFFE040FB),
+                      color: Color(0xFFE53935),
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -2404,7 +2404,7 @@ class _PeaceLoginDialogState extends State<PeaceLoginDialog> {
                 height: 48,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE040FB),
+                    backgroundColor: const Color(0xFFE53935),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
@@ -2544,7 +2544,7 @@ class _PeaceSignUpDialogState extends State<PeaceSignUpDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF18181B),
+      backgroundColor: const Color(0xFF121214),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
         side: BorderSide(color: Colors.white.withOpacity(0.1)),
@@ -2564,10 +2564,10 @@ class _PeaceSignUpDialogState extends State<PeaceSignUpDialog> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE040FB).withOpacity(0.15),
+                          color: const Color(0xFFE53935).withOpacity(0.15),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(Icons.person_add_rounded, color: Color(0xFFE040FB), size: 24),
+                        child: const Icon(Icons.person_add_rounded, color: Color(0xFFE53935), size: 24),
                       ),
                       const SizedBox(width: 12),
                       const Text(
@@ -2624,11 +2624,11 @@ class _PeaceSignUpDialogState extends State<PeaceSignUpDialog> {
               // Unique Username (Auto suggested)
               TextField(
                 controller: _usernameController,
-                style: const TextStyle(color: Color(0xFFE040FB), fontWeight: FontWeight.w600),
+                style: const TextStyle(color: Color(0xFFE53935), fontWeight: FontWeight.w600),
                 decoration: InputDecoration(
                   hintText: "Unique Username (@username)",
                   hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
-                  prefixIcon: const Icon(Icons.alternate_email_rounded, color: Color(0xFFE040FB), size: 20),
+                  prefixIcon: const Icon(Icons.alternate_email_rounded, color: Color(0xFFE53935), size: 20),
                   suffixIcon: IconButton(
                     tooltip: "Generate New Username",
                     icon: const Icon(Icons.refresh_rounded, color: Colors.white54, size: 18),
@@ -2638,7 +2638,7 @@ class _PeaceSignUpDialogState extends State<PeaceSignUpDialog> {
                     },
                   ),
                   filled: true,
-                  fillColor: const Color(0xFFE040FB).withOpacity(0.08),
+                  fillColor: const Color(0xFFE53935).withOpacity(0.08),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
@@ -2698,7 +2698,7 @@ class _PeaceSignUpDialogState extends State<PeaceSignUpDialog> {
                 height: 50,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE040FB),
+                    backgroundColor: const Color(0xFFE53935),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
@@ -2795,7 +2795,7 @@ class _PeaceOtpVerificationDialogState extends State<PeaceOtpVerificationDialog>
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF18181B),
+      backgroundColor: const Color(0xFF121214),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
         side: BorderSide(color: Colors.white.withOpacity(0.1)),
@@ -2809,10 +2809,10 @@ class _PeaceOtpVerificationDialogState extends State<PeaceOtpVerificationDialog>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFE040FB).withOpacity(0.15),
+                color: const Color(0xFFE53935).withOpacity(0.15),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.verified_user_rounded, color: Color(0xFFE040FB), size: 36),
+              child: const Icon(Icons.verified_user_rounded, color: Color(0xFFE53935), size: 36),
             ),
             const SizedBox(height: 16),
             const Text(
@@ -2830,47 +2830,6 @@ class _PeaceOtpVerificationDialogState extends State<PeaceOtpVerificationDialog>
               style: const TextStyle(fontSize: 13, color: Colors.white60, height: 1.4),
             ),
             const SizedBox(height: 16),
-
-            // Instant OTP Auto-Fill Card
-            Builder(builder: (ctx) {
-              final activeOtp = Get.find<PeaceAuthService>().getOtpForEmail(widget.email) ?? "";
-              if (activeOtp.isEmpty) return const SizedBox.shrink();
-              return Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE040FB).withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFE040FB).withOpacity(0.4)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text("Your OTP Code:", style: TextStyle(fontSize: 11, color: Colors.white60)),
-                        Text(activeOtp, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFE040FB), letterSpacing: 2)),
-                      ],
-                    ),
-                    TextButton.icon(
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.white12,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      icon: const Icon(Icons.flash_on_rounded, size: 16, color: Colors.amberAccent),
-                      label: const Text("Auto-Fill", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                      onPressed: () {
-                        setState(() {
-                          _otpController.text = activeOtp;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              );
-            }),
 
             // OTP Input
             TextField(
@@ -2901,7 +2860,7 @@ class _PeaceOtpVerificationDialogState extends State<PeaceOtpVerificationDialog>
               onPressed: () {
                 Get.find<PeaceAuthService>().sendOtpToEmail(widget.email, purpose: "Resent");
               },
-              child: const Text("Resend OTP Code", style: TextStyle(color: Color(0xFFE040FB), fontSize: 13)),
+              child: const Text("Resend OTP Code", style: TextStyle(color: Color(0xFFE53935), fontSize: 13)),
             ),
             const SizedBox(height: 16),
 
@@ -2911,7 +2870,7 @@ class _PeaceOtpVerificationDialogState extends State<PeaceOtpVerificationDialog>
               height: 48,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE040FB),
+                  backgroundColor: const Color(0xFFE53935),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
@@ -2955,7 +2914,9 @@ class _PeaceForgotPasswordDialogState extends State<PeaceForgotPasswordDialog> {
   final _otpController = TextEditingController();
   final _newPasswordController = TextEditingController();
   bool _otpSent = false;
+  bool _otpVerified = false;
   bool _isLoading = false;
+  bool _obscureNewPassword = true;
 
   @override
   void dispose() {
@@ -2983,48 +2944,61 @@ class _PeaceForgotPasswordDialogState extends State<PeaceForgotPasswordDialog> {
     }
 
     await auth.sendOtpToEmail(email, purpose: "Password Reset");
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        _otpSent = true;
+      });
+    }
+  }
+
+  void _handleVerifyOtp() {
+    final email = _emailController.text.trim().toLowerCase();
+    final enteredOtp = _otpController.text.trim();
+    final auth = Get.find<PeaceAuthService>();
+
+    if (enteredOtp.length < 4) {
+      auth.showCustomSnackBar("Gmail par aaya 6-digit OTP code dalein.", title: "Invalid OTP");
+      return;
+    }
+
+    final isValid = auth.verifyOtp(email, enteredOtp);
+    if (!isValid) {
+      auth.showCustomSnackBar("Galat OTP code! Kripya apna Gmail inbox check karein.", title: "Verification Failed");
+      return;
+    }
+
     setState(() {
-      _isLoading = false;
-      _otpSent = true;
+      _otpVerified = true;
     });
   }
 
   Future<void> _handleResetPassword() async {
     final email = _emailController.text.trim().toLowerCase();
-    final enteredOtp = _otpController.text.trim();
     final newPassword = _newPasswordController.text;
     final auth = Get.find<PeaceAuthService>();
 
-    if (enteredOtp.length < 4 || newPassword.length < 4) {
-      auth.showCustomSnackBar("OTP aur kam se kam 4 character ka naya password dalein.", title: "Incomplete Form");
+    if (newPassword.length < 4) {
+      auth.showCustomSnackBar("Kam se kam 4 character ka naya password dalein.", title: "Weak Password");
       return;
     }
 
     setState(() => _isLoading = true);
-    final isValid = auth.verifyOtp(email, enteredOtp);
-
-    if (!isValid) {
-      setState(() => _isLoading = false);
-      auth.showCustomSnackBar("Galat OTP code! Kripya check karein.", title: "Invalid OTP");
-      return;
-    }
-
     final success = await auth.resetPassword(email: email, newPassword: newPassword);
     if (success) {
-      // Auto login with new password
       await auth.loginWithCredentials(identifier: email, password: newPassword);
       if (mounted) Navigator.pop(context);
     }
-    setState(() => _isLoading = false);
+    if (mounted) setState(() => _isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF18181B),
+      backgroundColor: const Color(0xFF121214),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
-        side: BorderSide(color: Colors.white.withOpacity(0.1)),
+        side: BorderSide(color: Colors.white.withOpacity(0.12)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -3038,7 +3012,7 @@ class _PeaceForgotPasswordDialogState extends State<PeaceForgotPasswordDialog> {
                 children: [
                   Row(
                     children: const [
-                      Icon(Icons.lock_reset_rounded, color: Color(0xFFE040FB), size: 26),
+                      Icon(Icons.lock_reset_rounded, color: Color(0xFFE53935), size: 26),
                       SizedBox(width: 10),
                       Text(
                         "Reset Password",
@@ -3059,25 +3033,28 @@ class _PeaceForgotPasswordDialogState extends State<PeaceForgotPasswordDialog> {
               const SizedBox(height: 12),
               Text(
                 !_otpSent
-                    ? "Apna registered Gmail dalein. Hum password reset code bhejenge:"
-                    : "Gmail par aaya 6-digit OTP code aur naya password dalein:",
+                    ? "Apna registered Gmail dalein. Hum aapke Gmail par verification code bhejenge:"
+                    : !_otpVerified
+                        ? "${_emailController.text.trim()} par bheja gaya 6-digit OTP dalein:"
+                        : "OTP verify ho gaya! Ab apna naya password set karein:",
                 style: const TextStyle(fontSize: 13, color: Colors.white60, height: 1.4),
               ),
               const SizedBox(height: 18),
 
               if (!_otpSent) ...[
-                // Gmail Input
                 TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   style: const TextStyle(color: Colors.white),
+                  cursorColor: const Color(0xFFE53935),
                   decoration: InputDecoration(
                     hintText: "Registered Gmail Address",
                     hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
                     prefixIcon: const Icon(Icons.email_outlined, color: Colors.white54, size: 20),
                     filled: true,
                     fillColor: Colors.white.withOpacity(0.06),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withOpacity(0.12))),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE53935), width: 1.5)),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   ),
                 ),
@@ -3087,7 +3064,7 @@ class _PeaceForgotPasswordDialogState extends State<PeaceForgotPasswordDialog> {
                   height: 48,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFE040FB),
+                      backgroundColor: const Color(0xFFE53935),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
@@ -3101,54 +3078,13 @@ class _PeaceForgotPasswordDialogState extends State<PeaceForgotPasswordDialog> {
                         : const Text("Send Reset Code", style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
-              ] else ...[
-                // Instant Reset OTP Auto-Fill Card
-                Builder(builder: (ctx) {
-                  final activeOtp = Get.find<PeaceAuthService>().getOtpForEmail(_emailController.text) ?? "";
-                  if (activeOtp.isEmpty) return const SizedBox.shrink();
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 14),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE040FB).withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFFE040FB).withOpacity(0.4)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text("Reset OTP Code:", style: TextStyle(fontSize: 11, color: Colors.white60)),
-                            Text(activeOtp, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFE040FB), letterSpacing: 2)),
-                          ],
-                        ),
-                        TextButton.icon(
-                          style: TextButton.styleFrom(
-                            backgroundColor: Colors.white12,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                          icon: const Icon(Icons.flash_on_rounded, size: 16, color: Colors.amberAccent),
-                          label: const Text("Auto-Fill", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                          onPressed: () {
-                            setState(() {
-                              _otpController.text = activeOtp;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-
-                // OTP Input
+              ] else if (!_otpVerified) ...[
                 TextField(
                   controller: _otpController,
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   maxLength: 6,
+                  cursorColor: const Color(0xFFE53935),
                   style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 6),
                   decoration: InputDecoration(
                     counterText: "",
@@ -3156,34 +3092,59 @@ class _PeaceForgotPasswordDialogState extends State<PeaceForgotPasswordDialog> {
                     hintStyle: const TextStyle(color: Colors.white24, letterSpacing: 6),
                     filled: true,
                     fillColor: Colors.white.withOpacity(0.06),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withOpacity(0.12))),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE53935), width: 1.5)),
                   ),
                 ),
-                const SizedBox(height: 14),
-
-                // New Password Input
-                TextField(
-                  controller: _newPasswordController,
-                  obscureText: true,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: "Naya Password",
-                    hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
-                    prefixIcon: const Icon(Icons.lock_outline, color: Colors.white54, size: 20),
-                    filled: true,
-                    fillColor: Colors.white.withOpacity(0.06),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                const SizedBox(height: 10),
+                Center(
+                  child: TextButton(
+                    onPressed: _isLoading ? null : _handleSendOtp,
+                    child: const Text("Resend OTP to Gmail", style: TextStyle(color: Color(0xFFFF8A80), fontSize: 13)),
                   ),
                 ),
-                const SizedBox(height: 20),
-
+                const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFE040FB),
+                      backgroundColor: const Color(0xFFE53935),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    onPressed: _handleVerifyOtp,
+                    child: const Text("Verify OTP", style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ] else ...[
+                TextField(
+                  controller: _newPasswordController,
+                  obscureText: _obscureNewPassword,
+                  style: const TextStyle(color: Colors.white),
+                  cursorColor: const Color(0xFFE53935),
+                  decoration: InputDecoration(
+                    hintText: "Naya Password (min 4 chars)",
+                    hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
+                    prefixIcon: const Icon(Icons.lock_outline, color: Colors.white54, size: 20),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscureNewPassword ? Icons.visibility_off : Icons.visibility, color: Colors.white54, size: 20),
+                      onPressed: () => setState(() => _obscureNewPassword = !_obscureNewPassword),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.06),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withOpacity(0.12))),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE53935), width: 1.5)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE53935),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
@@ -3194,7 +3155,7 @@ class _PeaceForgotPasswordDialogState extends State<PeaceForgotPasswordDialog> {
                             height: 20,
                             child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                           )
-                        : const Text("Reset Password & Login", style: TextStyle(fontWeight: FontWeight.bold)),
+                        : const Text("Update Password & Login", style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
@@ -3226,7 +3187,7 @@ class _PeaceGuestDialogState extends State<PeaceGuestDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF18181B),
+      backgroundColor: const Color(0xFF121214),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
         side: BorderSide(color: Colors.white.withOpacity(0.1)),
@@ -3335,7 +3296,7 @@ class _GoogleLoginDialogState extends State<GoogleLoginDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF18181B),
+      backgroundColor: const Color(0xFF121214),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
         side: BorderSide(color: Colors.white.withOpacity(0.1)),

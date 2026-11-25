@@ -1,7 +1,7 @@
 {
-  "versionCode": 31,
-  "versionName": "1.3.0",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.3.0/PeaceMusic.apk",
-  "changelog": "100% transparent background on splash animation logo and home screen logo",
+  "versionCode": 32,
+  "versionName": "1.3.1",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.3.1/PeaceMusic.apk",
+  "changelog": "Per-account isolation (downloads, search history, playlists), guest-to-Gmail cloud migration, 2-step OTP password reset without auto-fill, and Red+Glassy theme",
   "updatedAt": "2026-11-25"
 }

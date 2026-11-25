@@ -10,6 +10,8 @@ import 'package:hive/hive.dart';
 import '../models/media_Item_builder.dart';
 import '../models/peace_user.dart';
 import '../models/playlist.dart';
+import '../ui/screens/Library/library_controller.dart';
+import '../ui/screens/Search/search_screen_controller.dart';
 import '../ui/widgets/snackbar.dart';
 import 'downloader.dart';
 
@@ -140,34 +142,39 @@ class PeaceAuthService extends GetxService {
     _activeOtps[cleanEmail] = otp;
 
     // Send real email via Harsh's Google Apps Script Web App!
+    bool sent = false;
     final webhookUrl = _authBox.get("mailWebhookUrl", defaultValue: googleScriptWebhookUrl);
     if (webhookUrl != null && webhookUrl.toString().trim().isNotEmpty) {
       try {
-        await Dio().post(
+        final payload = jsonEncode({
+          "to": cleanEmail,
+          "subject": "Your Peace Music verification code is $otp",
+          "body": "Your Peace Music verification code is: $otp\n\nValid for 10 minutes.\n\nPeace Music • Lossless Audio Streaming • Made by Harsh",
+          "otp": otp,
+        });
+        final res = await Dio().post(
           webhookUrl.toString().trim(),
-          data: {
-            "to": cleanEmail,
-            "subject": "Your Peace Music verification code is $otp",
-            "body": "Your Peace Music verification code is: $otp\n\nValid for 10 minutes.\n\nPeace Music • Lossless Audio Streaming • Made by Harsh",
-            "otp": otp,
-          },
+          data: payload,
           options: Options(
-            sendTimeout: const Duration(seconds: 8),
-            receiveTimeout: const Duration(seconds: 8),
-            headers: {"Content-Type": "application/json"},
-            followRedirects: true,
-            validateStatus: (status) => status != null && status < 500,
+            sendTimeout: const Duration(seconds: 12),
+            receiveTimeout: const Duration(seconds: 12),
+            headers: {"Content-Type": "text/plain;charset=utf-8"},
+            followRedirects: false,
+            validateStatus: (status) => status != null && status < 400,
           ),
         );
+        sent = (res.statusCode ?? 500) < 400;
       } catch (e) {
         debugPrint("Webhook dispatch error: $e");
       }
     }
 
     showCustomSnackBar(
-      "OTP Code: $otp (Sent to $cleanEmail)",
+      sent
+          ? "$cleanEmail par 6-digit OTP bhej diya gaya hai. Apna Gmail inbox ya spam check karein."
+          : "OTP bhejne mein samasya aayi ($cleanEmail). Kripya internet check karke dobara try karein.",
       title: "Gmail $purpose OTP",
-      duration: const Duration(seconds: 10),
+      duration: const Duration(seconds: 5),
     );
 
     return otp;
@@ -302,6 +309,7 @@ class PeaceAuthService extends GetxService {
       );
 
       if (res.statusCode == 200 && res.data is Map && res.data["success"] == true) {
+        final wasGuest = isGuest.value && currentUser.value != null;
         final userData = res.data["user"];
         final savedUser = PeaceUser.fromJson(Map<String, dynamic>.from(userData)).copyWith(
           downloadedSongIds: _getLocalDownloadedSongIds(),
@@ -313,9 +321,16 @@ class PeaceAuthService extends GetxService {
         isLoggedIn.value = true;
         isGuest.value = false;
 
+        if (!wasGuest) {
+          await _clearAllLocalUserData();
+        }
         // Restore user's cloud library from VPS!
         if (res.data["cloudData"] is Map) {
           await _restoreCloudData(Map<String, dynamic>.from(res.data["cloudData"]));
+        }
+        if (wasGuest) {
+          await syncWithCloud(showNotice: false);
+          await _cleanupGuestStorage();
         }
 
         showCustomSnackBar("Welcome back, ${savedUser.name}!", title: "Login Successful 🎉");
@@ -597,6 +612,7 @@ class PeaceAuthService extends GetxService {
       );
 
       if (res.statusCode == 200 && res.data is Map && res.data["success"] == true) {
+        final wasGuest = isGuest.value && currentUser.value != null;
         final userData = res.data["user"];
         final user = PeaceUser.fromJson(Map<String, dynamic>.from(userData)).copyWith(
           photoUrl: photoUrl,
@@ -609,9 +625,16 @@ class PeaceAuthService extends GetxService {
         isLoggedIn.value = true;
         isGuest.value = false;
 
+        if (!wasGuest) {
+          await _clearAllLocalUserData();
+        }
         // Restore cloud backup from VPS
         if (res.data["cloudData"] is Map) {
           await _restoreCloudData(Map<String, dynamic>.from(res.data["cloudData"]));
+        }
+        if (wasGuest) {
+          await syncWithCloud(showNotice: false);
+          await _cleanupGuestStorage();
         }
 
         isSyncing.value = false;
@@ -713,6 +736,12 @@ class PeaceAuthService extends GetxService {
       final downloadedSongs = downloadsBox.values.toList();
       final downloadedIds = downloadsBox.keys.map((e) => e.toString()).toList();
 
+      // 5. Gather search history & selected artists
+      final queryBox = Hive.isBoxOpen("searchQuery")
+          ? Hive.box("searchQuery")
+          : await Hive.openBox("searchQuery");
+      final searchHistory = queryBox.values.map((e) => e.toString()).toList();
+
       final cloudPayload = {
         'userId': user.userId,
         'email': user.email,
@@ -723,6 +752,8 @@ class PeaceAuthService extends GetxService {
         'recentlyPlayed': recentsList,
         'downloadedSongs': downloadedSongs,
         'downloadedSongIds': downloadedIds,
+        'searchHistory': searchHistory,
+        'selectedArtists': selectedArtists.toList(),
       };
 
       // Store in cloud storage box (ready for online Firestore / REST sync)
@@ -798,6 +829,28 @@ class PeaceAuthService extends GetxService {
         }
       }
 
+      // 3.5 Restore Search History & Selected Artists
+      if (cloudData['searchHistory'] is List) {
+        final queryBox = Hive.isBoxOpen("searchQuery")
+            ? Hive.box("searchQuery")
+            : await Hive.openBox("searchQuery");
+        await queryBox.clear();
+        for (var q in cloudData['searchHistory']) {
+          if (q != null && q.toString().trim().isNotEmpty) {
+            await queryBox.add(q.toString());
+          }
+        }
+      }
+      if (cloudData['selectedArtists'] is List) {
+        final artists = (cloudData['selectedArtists'] as List)
+            .map((e) => e.toString())
+            .where((e) => e.isNotEmpty)
+            .toList();
+        if (artists.isNotEmpty) {
+          await saveSelectedArtists(artists);
+        }
+      }
+
       // 4. Check for offline downloads on this device!
       final cloudDownloadedIds = (cloudData['downloadedSongIds'] as List<dynamic>?)
               ?.map((e) => e.toString())
@@ -823,6 +876,7 @@ class PeaceAuthService extends GetxService {
           });
         }
       }
+      _refreshActiveControllers();
     } catch (e) {
       debugPrint("Restore error: $e");
     }
@@ -860,12 +914,12 @@ class PeaceAuthService extends GetxService {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE040FB).withOpacity(0.15),
+                      color: const Color(0xFFE53935).withOpacity(0.15),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.cloud_download_rounded,
-                      color: Color(0xFFE040FB),
+                      color: Color(0xFFE53935),
                       size: 28,
                     ),
                   ),
@@ -927,7 +981,7 @@ class PeaceAuthService extends GetxService {
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFE040FB),
+                        backgroundColor: const Color(0xFFE53935),
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -961,19 +1015,83 @@ class PeaceAuthService extends GetxService {
     );
   }
 
+  Future<void> _clearAllLocalUserData() async {
+    try {
+      final favBox = Hive.isBoxOpen("LIBFAV") ? Hive.box("LIBFAV") : await Hive.openBox("LIBFAV");
+      await favBox.clear();
+
+      final playlistBox = Hive.isBoxOpen("LibraryPlaylists")
+          ? Hive.box("LibraryPlaylists")
+          : await Hive.openBox("LibraryPlaylists");
+      await playlistBox.clear();
+
+      final recentBox = Hive.isBoxOpen("LIBRP") ? Hive.box("LIBRP") : await Hive.openBox("LIBRP");
+      await recentBox.clear();
+
+      if (Hive.isBoxOpen("SongDownloads")) {
+        await Hive.box("SongDownloads").clear();
+      }
+
+      final queryBox = Hive.isBoxOpen("searchQuery")
+          ? Hive.box("searchQuery")
+          : await Hive.openBox("searchQuery");
+      await queryBox.clear();
+
+      selectedArtists.clear();
+      await _authBox.delete("selectedArtists");
+      _refreshActiveControllers();
+    } catch (e) {
+      debugPrint("Clear local user data error: $e");
+    }
+  }
+
+  Future<void> _cleanupGuestStorage() async {
+    try {
+      await _authBox.delete("savedGuestProfile");
+      await _authBox.delete("cloud_sync_guest");
+    } catch (_) {}
+  }
+
+  void _refreshActiveControllers() {
+    try {
+      if (Get.isRegistered<SearchScreenController>()) {
+        final sc = Get.find<SearchScreenController>();
+        if (Hive.isBoxOpen("searchQuery")) {
+          sc.historyQuerylist.value = Hive.box("searchQuery").values.toList().reversed.toList();
+        } else {
+          sc.historyQuerylist.clear();
+        }
+      }
+      if (Get.isRegistered<LibrarySongsController>()) {
+        Get.find<LibrarySongsController>().refresh();
+      }
+      if (Get.isRegistered<LibraryPlaylistsController>()) {
+        Get.find<LibraryPlaylistsController>().refresh();
+      }
+    } catch (_) {}
+  }
+
   Future<void> logout() async {
+    final prevUser = currentUser.value;
+    if (prevUser != null) {
+      await syncWithCloud(showNotice: false);
+    }
+
+    await _clearAllLocalUserData();
     await _authBox.delete("currentUser");
     currentUser.value = null;
     isLoggedIn.value = false;
     isGuest.value = false;
 
     showCustomSnackBar(
-      "Aapka account logout ho gaya hai.",
+      "Aapka account logout ho gaya hai. Naye account ka data alag rahega.",
       title: "Logged Out",
     );
   }
 
   Future<void> clearGuestData() async {
+    await _clearAllLocalUserData();
+    await _cleanupGuestStorage();
     await _authBox.delete("currentUser");
     currentUser.value = null;
     isLoggedIn.value = false;
