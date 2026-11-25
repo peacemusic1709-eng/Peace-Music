@@ -1765,7 +1765,15 @@ class _PeaceOnboardingBottomSheetState
         ),
         child: Row(
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 24)),
+            Icon(
+              value == "Male"
+                  ? Icons.male_rounded
+                  : value == "Female"
+                      ? Icons.female_rounded
+                      : Icons.transgender_rounded,
+              color: isSelected ? Colors.white : Colors.white70,
+              size: 24,
+            ),
             const SizedBox(width: 16),
             Expanded(
               child: Text(

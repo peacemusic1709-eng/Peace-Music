@@ -1,7 +1,7 @@
 {
-  "versionCode": 26,
-  "versionName": "1.2.5",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.2.5/PeaceMusic.apk",
-  "changelog": "Fixed gender vector icons, artist photo headers, and endless artist playlist/album feed",
+  "versionCode": 27,
+  "versionName": "1.2.6",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.2.6/PeaceMusic.apk",
+  "changelog": "Replaced gender emojis with clean vector symbols (male/female/transgender)",
   "updatedAt": "2026-11-24"
 }
