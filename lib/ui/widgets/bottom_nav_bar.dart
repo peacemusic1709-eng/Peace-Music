@@ -10,15 +10,29 @@ class BottomNavBar extends StatelessWidget {
     final homeScreenController = Get.find<HomeScreenController>();
     final bottomInset = MediaQuery.of(context).padding.bottom;
 
-    return Padding(
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.transparent,
+            Colors.black.withOpacity(0.75),
+            Colors.black.withOpacity(0.95),
+            Colors.black,
+          ],
+          stops: const [0.0, 0.35, 0.7, 1.0],
+        ),
+      ),
       padding: EdgeInsets.only(
         left: 20,
         right: 20,
+        top: 14,
         bottom: bottomInset > 0 ? bottomInset : 8,
       ),
       child: Container(
         height: 52,
-        color: Colors.transparent, // Background poora hata diya, 100% transparent!
+        color: Colors.transparent,
         child: Obx(() {
           final int selectedIndex =
               homeScreenController.tabIndex.toInt().clamp(0, 3);

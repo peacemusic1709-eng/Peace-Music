@@ -1,8 +1,8 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 import '../../services/peace_auth_service.dart';
+import '../screens/Home/home_screen_controller.dart';
 
 enum OnboardingView {
   welcome,
@@ -14,6 +14,7 @@ enum OnboardingView {
   guestGender,
   loginEmail,
   otpVerify,
+  selectArtists,
 }
 
 /// Official Vector 4-Color Google 'G' Logo
@@ -132,6 +133,37 @@ class _PeaceOnboardingBottomSheetState
   bool _isVerifying = false;
   bool _isSignUpVerification = false;
   String _targetEmail = "";
+  final List<String> _selectedArtists = [];
+
+  static const List<Map<String, String>> _popularArtists = [
+    {"name": "Arijit Singh", "img": "https://yt3.googleusercontent.com/ytc/AIdro_k8h2c0f9X6q7Z5Y4W3V2U1T0S9R8Q7P6O5N4M3=s500-c-k-c0x00ffffff-no-rj"},
+    {"name": "Pritam", "img": "https://yt3.googleusercontent.com/ytc/AIdro_lPritam=s500-c-k-c0x00ffffff-no-rj"},
+    {"name": "Atif Aslam", "img": ""},
+    {"name": "Shreya Ghoshal", "img": ""},
+    {"name": "Diljit Dosanjh", "img": ""},
+    {"name": "AP Dhillon", "img": ""},
+    {"name": "Anuv Jain", "img": ""},
+    {"name": "Karan Aujla", "img": ""},
+    {"name": "Sidhu Moose Wala", "img": ""},
+    {"name": "Jubin Nautiyal", "img": ""},
+    {"name": "Neha Kakkar", "img": ""},
+    {"name": "Badshah", "img": ""},
+    {"name": "The Weeknd", "img": ""},
+    {"name": "Taylor Swift", "img": ""},
+    {"name": "Drake", "img": ""},
+    {"name": "Billie Eilish", "img": ""},
+    {"name": "Ed Sheeran", "img": ""},
+    {"name": "Eminem", "img": ""},
+  ];
+
+  void _finishAuthOrSelectArtists() {
+    final auth = Get.find<PeaceAuthService>();
+    if (auth.hasSelectedArtists) {
+      if (mounted) Navigator.pop(context);
+    } else {
+      _goTo(OnboardingView.selectArtists);
+    }
+  }
 
   VideoPlayerController? _videoController;
   bool _isVideoInitialized = false;
@@ -202,7 +234,7 @@ class _PeaceOnboardingBottomSheetState
             title: "Sign Up Verified 🎉",
             duration: const Duration(seconds: 4),
           );
-          if (mounted) Navigator.pop(context);
+          if (mounted) _finishAuthOrSelectArtists();
         } else {
           auth.showCustomSnackBar(
             "Galat OTP code! Kripya check karein.",
@@ -216,7 +248,7 @@ class _PeaceOnboardingBottomSheetState
           enteredOtp: otp,
         );
         if (success) {
-          if (mounted) Navigator.pop(context);
+          if (mounted) _finishAuthOrSelectArtists();
         } else {
           setState(() => _isVerifying = false);
         }
@@ -243,7 +275,7 @@ class _PeaceOnboardingBottomSheetState
     }
 
     if (loggedIn && mounted) {
-      Navigator.pop(context);
+      _finishAuthOrSelectArtists();
     }
   }
 
@@ -366,7 +398,218 @@ class _PeaceOnboardingBottomSheetState
         return _buildLoginEmailView(context);
       case OnboardingView.otpVerify:
         return _buildOtpVerifyView(context);
+      case OnboardingView.selectArtists:
+        return _buildSelectArtistsView(context);
     }
+  }
+
+  Widget _buildSelectArtistsView(BuildContext context) {
+    final auth = Get.find<PeaceAuthService>();
+    final bool canProceed = _selectedArtists.length >= 3;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Expanded(
+              child: Text(
+                "Select your artists",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: canProceed
+                    ? const Color(0xFF7C4DFF).withOpacity(0.25)
+                    : Colors.white.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: canProceed
+                      ? const Color(0xFF7C4DFF)
+                      : Colors.white24,
+                ),
+              ),
+              child: Text(
+                "${_selectedArtists.length}/3 selected",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: canProceed ? const Color(0xFFB388FF) : Colors.white70,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          "Choose 3 artists you love to personalize 70% of your endless home feed.",
+          style: TextStyle(fontSize: 13.5, color: Colors.white60),
+        ),
+        const SizedBox(height: 18),
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.56,
+          child: GridView.builder(
+            physics: const BouncingScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 12,
+              childAspectRatio: 0.78,
+            ),
+            itemCount: _popularArtists.length,
+            itemBuilder: (context, index) {
+              final artist = _popularArtists[index];
+              final name = artist["name"]!;
+              final img = artist["img"] ?? "";
+              final isSelected = _selectedArtists.contains(name);
+              final initials = name.split(" ").take(2).map((e) => e.isNotEmpty ? e[0] : "").join().toUpperCase();
+
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    if (isSelected) {
+                      _selectedArtists.remove(name);
+                    } else if (_selectedArtists.length < 3) {
+                      _selectedArtists.add(name);
+                    } else {
+                      _selectedArtists.removeAt(0);
+                      _selectedArtists.add(name);
+                    }
+                  });
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          width: 82,
+                          height: 82,
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected
+                                  ? const Color(0xFF7C4DFF)
+                                  : Colors.white.withOpacity(0.16),
+                              width: isSelected ? 2.5 : 1.0,
+                            ),
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: const Color(0xFF7C4DFF).withOpacity(0.45),
+                                      blurRadius: 14,
+                                      spreadRadius: 1,
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: ClipOval(
+                            child: img.isNotEmpty
+                                ? Image.network(
+                                    img,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => _artistFallbackAvatar(initials, isSelected),
+                                  )
+                                : _artistFallbackAvatar(initials, isSelected),
+                          ),
+                        ),
+                        if (isSelected)
+                          Container(
+                            width: 24,
+                            height: 24,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF7C4DFF),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.check_rounded, color: Colors.white, size: 15),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color: isSelected ? Colors.white : Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: canProceed ? const Color(0xFF7C4DFF) : Colors.white12,
+              foregroundColor: Colors.white,
+              elevation: canProceed ? 6 : 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(26),
+              ),
+            ),
+            onPressed: canProceed
+                ? () async {
+                    await auth.saveSelectedArtists(_selectedArtists);
+                    if (Get.isRegistered<HomeScreenController>()) {
+                      Get.find<HomeScreenController>().refreshArtistFeed();
+                    }
+                    if (context.mounted) Navigator.pop(context);
+                  }
+                : null,
+            child: Text(
+              canProceed ? "Next" : "Select ${3 - _selectedArtists.length} more",
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+
+  Widget _artistFallbackAvatar(String initials, bool isSelected) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isSelected
+              ? const [Color(0xFF7C4DFF), Color(0xFF536DFE)]
+              : const [Color(0xFF1F2233), Color(0xFF13141F)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          initials,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
   }
 
   // 1. WELCOME SCREEN (Mandatory selection, no close button)
@@ -483,7 +726,7 @@ class _PeaceOnboardingBottomSheetState
             final auth = Get.find<PeaceAuthService>();
             if (auth.hasSavedGuestProfile) {
               await auth.loginAsGuest();
-              if (context.mounted) Navigator.pop(context);
+              if (context.mounted) _finishAuthOrSelectArtists();
             } else {
               _goTo(OnboardingView.guestName);
             }
@@ -1129,7 +1372,7 @@ class _PeaceOnboardingBottomSheetState
 
                     if (registered) {
                       if (context.mounted) {
-                        Navigator.pop(context);
+                        _finishAuthOrSelectArtists();
                       }
                     }
                   },
@@ -1369,7 +1612,7 @@ class _PeaceOnboardingBottomSheetState
                   ? "Guest User"
                   : _guestNameController.text.trim();
               await auth.loginAsGuest(name, _guestGender);
-              if (context.mounted) Navigator.pop(context);
+              if (context.mounted) _finishAuthOrSelectArtists();
             },
             child: const Text(
               "Start Listening 🎵",
@@ -1612,7 +1855,7 @@ class _PeaceOnboardingBottomSheetState
                     setState(() => _isLoading = false);
 
                     if (success && mounted) {
-                      Navigator.pop(context);
+                      _finishAuthOrSelectArtists();
                     }
                   },
             child: _isLoading

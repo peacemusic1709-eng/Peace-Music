@@ -514,7 +514,9 @@ class PlayerController extends GetxController
         playerPanelMinHeight.value =
             miniPlayerHeight + Get.mediaQuery.viewPadding.bottom;
       } else {
-        playerPanelMinHeight.value = miniPlayerHeight;
+        final bottomInset = Get.mediaQuery.padding.bottom;
+        final navHeight = 66.0 + (bottomInset > 0 ? bottomInset : 8.0);
+        playerPanelMinHeight.value = miniPlayerHeight + navHeight;
       }
       initFlagForPlayer = false;
     }

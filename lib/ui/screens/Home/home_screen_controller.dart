@@ -11,6 +11,7 @@ import '/models/album.dart';
 import '/models/playlist.dart';
 import '/models/quick_picks.dart';
 import '/services/music_service.dart';
+import '/services/peace_auth_service.dart';
 import '../Settings/settings_screen_controller.dart';
 import '/ui/widgets/new_version_dialog.dart';
 
@@ -51,6 +52,14 @@ class HomeScreenController extends GetxController {
     }
   }
 
+  Future<void> refreshArtistFeed() async {
+    _endlessBatchIndex = 0;
+    dynamicEndlessContent.clear();
+    hasMoreEndless.value = true;
+    await loadNextEndlessBatch();
+    await loadNextEndlessBatch();
+  }
+
   Future<void> loadNextEndlessBatch() async {
     if (isLoadingMore.value || !hasMoreEndless.value) return;
     isLoadingMore.value = true;
@@ -59,8 +68,39 @@ class HomeScreenController extends GetxController {
       List newSections = [];
       final box = Hive.box("AppPrefs");
       final recentSongId = box.get("recentSongId");
+      final auth = Get.isRegistered<PeaceAuthService>()
+          ? Get.find<PeaceAuthService>()
+          : null;
+      final artists = auth?.selectedArtists.toList() ?? <String>[];
 
-      if (_endlessBatchIndex == 1 && recentSongId != null) {
+      // 70% of endless feed from user's 3 selected artists
+      if (artists.isNotEmpty && (_endlessBatchIndex % 10 < 7)) {
+        final artist = artists[_endlessBatchIndex % artists.length];
+        const modifiers = ["top hits", "best songs", "mix", "essentials", "albums", "playlist", "trending"];
+        final mod = modifiers[(_endlessBatchIndex ~/ artists.length) % modifiers.length];
+        final useAlbums = _endlessBatchIndex % 3 == 0;
+        try {
+          final res = await _musicServices.search(
+            "$artist $mod",
+            filter: useAlbums ? "albums" : "playlists",
+          );
+          final items = res[useAlbums ? "Albums" : "Playlists"];
+          if (items is List && items.isNotEmpty) {
+            final sectionTitle = useAlbums ? "$artist • Albums" : "$artist • $mod";
+            final dynamic parsed = useAlbums
+                ? AlbumContent(albumList: items.whereType<Album>().toList(), title: sectionTitle)
+                : PlaylistContent(playlistList: items.whereType<Playlist>().toList(), title: sectionTitle);
+            if (!dynamicEndlessContent.any((dynamic existing) => (existing as dynamic).title == sectionTitle)) {
+              newSections.add(parsed);
+            }
+          }
+        } catch (e) {
+          debugPrint("Error fetching artist endless batch ($artist): $e");
+        }
+      }
+
+      // 30% general related / charts feed (or fallback if artist batch returned empty)
+      if (newSections.isEmpty && _endlessBatchIndex == 1 && recentSongId != null) {
         try {
           final rel = await _musicServices.getContentRelatedToSong(
               recentSongId.toString(), getContentHlCode());
@@ -108,10 +148,6 @@ class HomeScreenController extends GetxController {
 
       if (newSections.isNotEmpty) {
         dynamicEndlessContent.addAll(newSections);
-      } else {
-        if (_endlessBatchIndex > 5) {
-          hasMoreEndless.value = false;
-        }
       }
     } catch (e) {
       debugPrint("loadNextEndlessBatch error: $e");
@@ -385,7 +421,9 @@ class HomeScreenController extends GetxController {
       // Set miniplayer height accordingly
       if (!playerCon.initFlagForPlayer) {
         if (isHomeOnTop) {
-          playerCon.playerPanelMinHeight.value = 75.0;
+          final bottomInset = Get.mediaQuery.padding.bottom;
+          final navHeight = 66.0 + (bottomInset > 0 ? bottomInset : 8.0);
+          playerCon.playerPanelMinHeight.value = 75.0 + navHeight;
         } else {
           Future.delayed(
               isResultScreenOnTop

@@ -18,8 +18,17 @@ class PeaceAuthService extends GetxService {
   final isLoggedIn = false.obs;
   final isGuest = false.obs;
   final isSyncing = false.obs;
+  final selectedArtists = <String>[].obs;
   final Map<String, String> _activeOtps = {};
   bool hasShownLaunchOnboarding = false;
+
+  bool get hasSelectedArtists => selectedArtists.length >= 3;
+
+  Future<void> saveSelectedArtists(List<String> artists) async {
+    final clean = artists.map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+    selectedArtists.assignAll(clean);
+    await _authBox.put("selectedArtists", clean);
+  }
 
   static const String googleScriptWebhookUrl =
       "https://script.google.com/macros/s/AKfycbw5Zad-M0kzVaHh-mHEcLcj957faphlOqRqynJMWpYIS1prx_89pZpB9PrHPskyZFju/exec";
@@ -493,6 +502,12 @@ class PeaceAuthService extends GetxService {
 
   void _loadUserFromStorage() {
     try {
+      if (_authBox.containsKey("selectedArtists")) {
+        final savedArtists = _authBox.get("selectedArtists");
+        if (savedArtists is List) {
+          selectedArtists.assignAll(savedArtists.map((e) => e.toString()).toList());
+        }
+      }
       if (_authBox.containsKey("currentUser")) {
         final data = _authBox.get("currentUser");
         if (data is Map) {
