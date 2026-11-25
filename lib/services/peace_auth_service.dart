@@ -23,6 +23,7 @@ class PeaceAuthService extends GetxService {
   final isSyncing = false.obs;
   final selectedArtists = <String>[].obs;
   final cloudOnlySongIds = <String>{}.obs;
+  bool get hasSelectedArtists => selectedArtists.length >= 3;
   final Map<String, String> _activeOtps = {};
   bool hasShownLaunchOnboarding = false;
 
