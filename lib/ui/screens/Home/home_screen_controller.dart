@@ -72,9 +72,11 @@ class HomeScreenController extends GetxController {
     final artists = auth?.selectedArtists.toList() ?? <String>[];
     if (artists.isNotEmpty) {
       try {
+        final results = await Future.wait(
+          artists.take(3).map((artist) => _musicServices.search("$artist songs", filter: "songs")),
+        );
         final List<MediaItem> artistSongs = [];
-        for (final artist in artists.take(3)) {
-          final res = await _musicServices.search("$artist songs", filter: "songs");
+        for (final res in results) {
           final songs = res["Songs"];
           if (songs is List) {
             artistSongs.addAll(songs.whereType<MediaItem>().take(6));
@@ -82,16 +84,17 @@ class HomeScreenController extends GetxController {
         }
         if (artistSongs.isNotEmpty) {
           artistSongs.shuffle();
-          quickPicks.value = QuickPicks(artistSongs, title: "For You • ${artists.take(3).join(', ')}");
+          quickPicks.value = QuickPicks(artistSongs, title: "Quick picks");
         }
       } catch (e) {
         debugPrint("refreshArtistFeed quickPicks error: $e");
       }
     }
 
-    await loadNextEndlessBatch();
-    await loadNextEndlessBatch();
-    await loadNextEndlessBatch();
+    await Future.wait([
+      loadNextEndlessBatch(),
+      loadNextEndlessBatch(),
+    ]);
   }
 
   Future<void> loadNextEndlessBatch() async {

@@ -1,7 +1,7 @@
 {
-  "versionCode": 22,
-  "versionName": "1.2.1",
-  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.2.1/PeaceMusic.apk",
-  "changelog": "Real artist photos in onboarding, frosted glass blur mini-player, and 70% artist-personalized Quick Picks & endless home feed",
+  "versionCode": 23,
+  "versionName": "1.2.2",
+  "apkUrl": "https://github.com/peacemusic1709-eng/Peace-Music/releases/download/v1.2.2/PeaceMusic.apk",
+  "changelog": "Fast parallel home feed loading, clean Quick picks title, and transparent frosted glass blur mini-player",
   "updatedAt": "2026-11-24"
 }

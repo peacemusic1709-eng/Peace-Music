@@ -33,15 +33,15 @@ class MiniPlayer extends StatelessWidget {
           duration: Duration.zero,
           child: ClipRect(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+              filter: ImageFilter.blur(sigmaX: 25.0, sigmaY: 25.0),
               child: Container(
                 height: playerController.playerPanelMinHeight.value,
                 width: size.width,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.40),
+                  color: Colors.white.withOpacity(0.08),
                   border: Border(
                     top: BorderSide(
-                      color: Colors.white.withOpacity(0.12),
+                      color: Colors.white.withOpacity(0.18),
                       width: 0.8,
                     ),
                   ),
